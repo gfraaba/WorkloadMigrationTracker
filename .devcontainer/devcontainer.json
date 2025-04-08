@@ -1,0 +1,29 @@
+{
+    "name": "DotNet9",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": "..",
+        "args": {
+            "PLATFORM": "${localEnv:PLATFORM}"
+        }
+    },
+    "runArgs": ["--platform", "${localEnv:PLATFORM}"],
+    "forwardPorts": [3000, 5500],
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "terminal.integrated.profiles.linux": { 
+                    "pwsh": { 
+                        "path": "/usr/bin/pwsh"
+                    } 
+                }
+            },
+            "extensions": [
+                "dbaeumer.vscode-eslint",
+                "esbenp.prettier-vscode",
+                "andyyaldoo.vscode-json"
+            ]
+        }
+    },
+    "postCreateCommand": "echo 'Container is ready!' && ls -la && pwsh --version && echo \"PLATFORM environment variable is set to: $PLATFORM\""
+}
