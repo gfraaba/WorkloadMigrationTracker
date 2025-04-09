@@ -17,3 +17,4 @@ cat /etc/apt/sources.list.d/mssql-release.list
 /opt/mssql-tools/bin/sqlcmd -U sa -P $DB_PASSWORD -Q "SELECT @@VERSION"
 /opt/mssql-tools/bin/sqlcmd -U sa -P $DB_PASSWORD -Q "SELECT name FROM sys.databases"
 /opt/mssql-tools/bin/sqlcmd -U sa -P $DB_PASSWORD -d WorkloadMigration -Q "SELECT name FROM sys.tables"
+/opt/mssql-tools/bin/sqlcmd -U sa -P $DB_PASSWORD -d WorkloadMigration -Q "SELECT * FROM ResourceTypes"
