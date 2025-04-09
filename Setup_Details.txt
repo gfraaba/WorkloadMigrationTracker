@@ -3,5 +3,17 @@ https://mcr.microsoft.com/en-us/artifact/mar/dotnet/sdk/about
 mkdir WorkloadMigrationTracker && cd WorkloadMigrationTracker
 code .
 
+# Docker (outside VS Code)
+docker logs <db_container_id>
+docker exec -it <db_container_id> id 
+# Should show uid=10001(mssql) gid=0(root)
+
 # Inside Dev Container:
 uname -m # aarch64 on macOS (to display the architecture)
+
+# Inside DB Container:
+ls -la /docker-entrypoint-initdb.d/
+cat /etc/apt/sources.list.d/mssql-release.list
+/opt/mssql-tools/bin/sqlcmd -U sa -P $DB_PASSWORD -Q "SELECT @@VERSION"
+/opt/mssql-tools/bin/sqlcmd -U sa -P $DB_PASSWORD -Q "SELECT name FROM sys.databases"
+/opt/mssql-tools/bin/sqlcmd -U sa -P $DB_PASSWORD -d WorkloadMigration -Q "SELECT name FROM sys.tables"

@@ -1,0 +1,39 @@
+services:
+  dev:
+    build:
+      context: ..
+      dockerfile: .devcontainer/dev.Dockerfile
+      args:
+        PLATFORM: ${PLATFORM}
+    platform: ${PLATFORM}      # Explicit platform declaration
+    volumes:
+      - ..:/workspace
+    stdin_open: true
+    tty: true
+    command: sleep infinity
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    build:
+      context: ..
+      dockerfile: .devcontainer/db.Dockerfile
+      args:
+        PLATFORM: ${PLATFORM}
+    platform: ${PLATFORM}      # Explicit platform declaration
+    environment:
+      SA_PASSWORD: ${DB_PASSWORD}
+      ACCEPT_EULA: "Y"
+      MSSQL_AGENT_ENABLED: "false" # Faster startup
+      MSSQL_INITIALIZE: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -U sa -P $${SA_PASSWORD} -Q \"SELECT 1\" || exit 1"]
+      interval: 15s
+      timeout: 30s
+      retries: 10
+      start_period: 60s # Extended for ARM64
+    volumes:
+      - ../Database/Scripts:/docker-entrypoint-initdb.d
+    ports:
+      - "1433:1433"

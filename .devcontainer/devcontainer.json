@@ -1,14 +1,9 @@
 {
     "name": "DotNet9",
-    "build": {
-        "dockerfile": "Dockerfile",
-        "context": "..",
-        "args": {
-            "PLATFORM": "${localEnv:PLATFORM}"
-        }
-    },
-    "runArgs": ["--platform", "${localEnv:PLATFORM}"],
-    "forwardPorts": [3000, 5500],
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "dev",
+    "workspaceFolder": "/workspace",
+    "forwardPorts": [5000, 5001, 1433],
     "customizations": {
         "vscode": {
             "settings": {
@@ -21,7 +16,9 @@
             "extensions": [
                 "dbaeumer.vscode-eslint",
                 "esbenp.prettier-vscode",
-                "andyyaldoo.vscode-json"
+                "andyyaldoo.vscode-json",
+                "ms-dotnettools.csharp",
+                "ms-azuretools.vscode-azuresql"
             ]
         }
     },
