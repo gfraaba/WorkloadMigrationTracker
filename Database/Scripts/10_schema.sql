@@ -68,9 +68,6 @@ CREATE TABLE ResourceStatuses (
 );
 
 ALTER TABLE Resources
-ADD WorkloadEnvironmentRegionId INT NOT NULL 
-    FOREIGN KEY REFERENCES WorkloadEnvironmentRegions(WorkloadEnvironmentRegionId),
-    ResourceTypeId INT NOT NULL 
-    FOREIGN KEY REFERENCES ResourceTypes(TypeId),
-    StatusId INT NOT NULL 
-    FOREIGN KEY REFERENCES ResourceStatuses(StatusId);
+ADD WorkloadEnvironmentRegionId INT NOT NULL FOREIGN KEY REFERENCES WorkloadEnvironmentRegions(WorkloadEnvironmentRegionId),
+    ResourceTypeId INT NOT NULL FOREIGN KEY REFERENCES ResourceTypes(TypeId),
+    StatusId INT NOT NULL FOREIGN KEY REFERENCES ResourceStatuses(StatusId);

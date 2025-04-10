@@ -1,20 +1,92 @@
 https://mcr.microsoft.com/en-us/artifact/mar/dotnet/sdk/about
 
-mkdir WorkloadMigrationTracker && cd WorkloadMigrationTracker
+#---- Manual Steps
+mkdir WorkloadMigrationTracker
+cd WorkloadMigrationTracker
+mkdir .devcontainer .scripts Database Database/Scripts # and WebApi?
+
 code .
+# Create: .gitignore, ReadMe.md, .scripts/Create-WebApiItems.ps1, ./.scripts/wait-for-db.sh 
+# chmod +x ./.scripts/*.*
+# Create: dev.Dockerfile, db.Dockerfile, docker-compose.yml, devcontainer.json, and .env (added to .gitignore)
+# Create: Database/Scripts/*.sql files and init-db.sh
+
+whoami
+ls -la
+dotnet --version
+printenv | grep DOTNET
+env
+dotnet --info
+    # Version:           9.0.203
+    # Base Path:   /usr/share/dotnet/sdk/9.0.203/
+    # There are no installed workloads to display.
+    # .NET SDKs installed: 9.0.203 [/usr/share/dotnet/sdk]
+    #.NET runtimes installed: 
+        # Microsoft.AspNetCore.App 9.0.4 [/usr/share/dotnet/shared/Microsoft.AspNetCore.App]
+        # Microsoft.NETCore.App 9.0.4 [/usr/share/dotnet/shared/Microsoft.NETCore.App]
+    # Your environment variables (e.g., DOTNET_CLI_TELEMETRY_OPTOUT, DOTNET_NOLOGO) are runtime behavior flags, not installation/config variables.
+        # dotnet --info ignores them because they don’t change the SDK’s location or version resolution.
+dotnet --list-sdks
+ls /usr/share/dotnet/sdk-manifests
+# Create minimal WebAPI (no extra boilerplate)
+dotnet new webapi -n WebApi --no-https -minimal
+    # You can opt-out of telemetry by setting the DOTNET_CLI_TELEMETRY_OPTOUT environment variable to '1' or 'true' using your favorite shell.
+    # Installed an ASP.NET Core HTTPS development certificate.
+    # To trust the certificate, run 'dotnet dev-certs https --trust'
+    # sudo dotnet workload update
+cd WebApi
+dotnet workload list
+    # Common workloads: maui, maui-mobile, maui-desktop, aspire, etc.
+
+dotnet add package Swashbuckle.AspNetCore
+    # To have the Swagger NuGet package installed
+dotnet add package Microsoft.EntityFrameworkCore
+dotnet add package Microsoft.EntityFrameworkCore.SqlServer
+    # To install EF Core packages
+dotnet tool install --global dotnet-ef
+    # To install EF Core tools
+    # ~/.dotnet/tools
+    # Needs PATH configuration, but persists across container rebuilds if added to .bashrc
+echo 'export PATH="$PATH:/root/.dotnet/tools"' >> ~/.bashrc
+source ~/.bashrc
+dotnet ef --version
+
+# Add essential packages
+dotnet add package Microsoft.EntityFrameworkCore.SqlServer
+dotnet add package Microsoft.EntityFrameworkCore.Design
+
+# After coding to implement a Minimal Viable Product...
+cd /workspace/WebApi/
+# To install it locally (not globally)
+    # No PATH changes needed; Version-pinned to your project; Committed to source control
+    dotnet new tool-manifest  # Creates .config/dotnet-tools.json
+    dotnet tool install dotnet-ef
+rm -rf Migrations
+dotnet ef migrations add InitialCreate # To undo this action, use 'ef migrations remove'
+dotnet ef database update
+/opt/mssql-tools18/bin/sqlcmd -S db -U sa -P "$DB_PASSWORD" -Q "SELECT @@SERVERNAME" -C -N
+
+dotnet clean
+dotnet build
+dotnet run
+http://localhost:8080/swagger
+
+# --------------------------------------------------------------
 
 # Docker (outside VS Code)
 docker logs <db_container_id>
 docker exec -it <db_container_id> id 
-# Should show uid=10001(mssql) gid=0(root)
+    # Should show uid=10001(mssql) gid=0(root)
 
 # Inside Dev Container:
 uname -m # aarch64 on macOS (to display the architecture)
 
-# Inside DB Container:
+# Inside DB Container: (after running this command: docker exec -it <db_container_id> bash)
 ls -la /docker-entrypoint-initdb.d/
 cat /etc/apt/sources.list.d/mssql-release.list
+DB_PASSWORD="YourStrong@Passw0rd"
 /opt/mssql-tools/bin/sqlcmd -U sa -P $DB_PASSWORD -Q "SELECT @@VERSION"
+/opt/mssql-tools/bin/sqlcmd -U sa -P $DB_PASSWORD -Q "SELECT @@SERVERNAME"
 /opt/mssql-tools/bin/sqlcmd -U sa -P $DB_PASSWORD -Q "SELECT name FROM sys.databases"
 /opt/mssql-tools/bin/sqlcmd -U sa -P $DB_PASSWORD -d WorkloadMigration -Q "SELECT name FROM sys.tables"
 /opt/mssql-tools/bin/sqlcmd -U sa -P $DB_PASSWORD -d WorkloadMigration -Q "SELECT * FROM ResourceTypes"

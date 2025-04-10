@@ -35,8 +35,8 @@ RUN mkdir -p /docker-entrypoint-initdb.d && \
 # RUN chmod +x /usr/local/bin/init-db.sh
 
 # Copy initialization files
-COPY ./Database/Scripts/init-db.sh /usr/local/bin/
 COPY ./Database/Scripts/ /docker-entrypoint-initdb.d/
+COPY ./Database/Scripts/init-db.sh /usr/local/bin/
 
 RUN chmod +x /usr/local/bin/init-db.sh && \
     chmod -R 750 /docker-entrypoint-initdb.d && \
@@ -45,4 +45,4 @@ RUN chmod +x /usr/local/bin/init-db.sh && \
     chown mssql:root /var/opt/mssql/log
 
 USER mssql
-CMD ["/usr/local/bin/init-db.sh"]
+# CMD ["/usr/local/bin/init-db.sh"]
