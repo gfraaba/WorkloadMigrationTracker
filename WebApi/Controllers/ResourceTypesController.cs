@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Data;
-using WebApi.Models;
+using Shared.Models; // Replace WebApi.Models with Shared.Models
 
 [ApiController]
 [Route("api/[controller]")]

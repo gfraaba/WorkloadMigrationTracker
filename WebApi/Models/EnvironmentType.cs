@@ -1,10 +1,1 @@
-namespace WebApi.Models;
-
-public class EnvironmentType
-{
-    public int EnvironmentTypeId { get; set; }
-    public required string Name { get; set; }
-    public string? Description { get; set; }
-    
-    // public ICollection<WorkloadEnvironmentRegion> WorkloadEnvironmentRegions { get; set; } = new List<WorkloadEnvironmentRegion>();
-}
+// This file is no longer needed as EnvironmentType is now used from Shared.Models.

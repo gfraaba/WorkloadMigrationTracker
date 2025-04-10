@@ -1,5 +1,5 @@
 // Data/DbInitializer.cs
-using WebApi.Models;
+using Shared.Models; // Updated namespace for Workload model
 
 namespace WebApi.Data;
 public static class DbInitializer

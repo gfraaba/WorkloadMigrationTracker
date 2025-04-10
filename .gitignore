@@ -20,3 +20,6 @@ obj/
 
 # Ignore Visual Studio Code files
 .vscode/
+
+# Ignore Blazor WebAssembly build artifacts
+**/wwwroot/**

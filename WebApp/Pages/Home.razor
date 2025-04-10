@@ -1,0 +1,49 @@
+﻿@page "/"
+@using Shared.Models
+@using WebApp.Services
+
+@inject WorkloadService WorkloadService
+
+<h3>Workloads</h3>
+
+@if (errorMessage != null)
+{
+    <p class="text-danger">Error: @errorMessage</p>
+}
+else if (workloads == null)
+{
+    <p>Loading...</p>
+}
+else if (!workloads.Any())
+{
+    <p>No workloads found.</p>
+}
+else
+{
+    <ul>
+        @foreach (var workload in workloads)
+        {
+            <li>@workload.Name</li>
+        }
+    </ul>
+}
+
+@code {
+    private List<Workload>? workloads;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Console.WriteLine("Home.razor: OnInitializedAsync started.");
+        try
+        {
+            workloads = await WorkloadService.GetWorkloadsAsync();
+            Console.WriteLine("Home.razor: Workloads fetched successfully.");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+            Console.WriteLine($"Home.razor: Error fetching workloads - {ex.Message}");
+        }
+    }
+}

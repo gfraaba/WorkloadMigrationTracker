@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Data;
-using WebApi.Models;
+using Shared.Models;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -100,6 +100,21 @@ public class ResourcesController : ControllerBase
         await _context.SaveChangesAsync();
 
         return NoContent();
+    }
+
+    [HttpPost("add-to-workload/{workloadId}")]
+    public async Task<IActionResult> AddResourceToWorkload(int workloadId, [FromBody] Resource resource)
+    {
+        var workload = await _context.Workloads.Include(w => w.Resources).FirstOrDefaultAsync(w => w.WorkloadId == workloadId);
+        if (workload == null)
+        {
+            return NotFound($"Workload with ID {workloadId} not found.");
+        }
+
+        workload.Resources.Add(resource);
+        await _context.SaveChangesAsync();
+
+        return Ok(resource);
     }
 
     private bool ResourceExists(int id)

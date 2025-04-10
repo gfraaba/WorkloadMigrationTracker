@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using WebApi.Models;
+using Shared.Models; // Updated namespace for Workload model
 
 namespace WebApi.Data;
 

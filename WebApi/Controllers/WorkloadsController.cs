@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Data;
-using WebApi.Models;
+using Shared.Models; // Updated namespace for Workload model
 
 [ApiController]
 [Route("api/[controller]")]

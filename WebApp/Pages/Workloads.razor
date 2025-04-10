@@ -1,0 +1,81 @@
+@page "/workloads"
+@using Shared.Models
+@using WebApp.Services
+
+@inject WorkloadService WorkloadService
+@inject NavigationManager Navigation
+
+<h3>Workloads</h3>
+
+@if (workloads == null)
+{
+    <p>Loading...</p>
+}
+else if (!workloads.Any())
+{
+    <p>No workloads found. <a @onclick="NavigateToCreate">Create a new workload</a></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Azure Name Prefix</th>
+                <th>Primary POC</th>
+                <th>Secondary POC</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var workload in workloads)
+            {
+                <tr>
+                    <td>@workload.Name</td>
+                    <td>@workload.Description</td>
+                    <td>@workload.AzureNamePrefix</td>
+                    <td>@workload.PrimaryPOC</td>
+                    <td>@workload.SecondaryPOC</td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="() => NavigateToEdit(workload.WorkloadId)">Edit</button>
+                        <button class="btn btn-danger" @onclick="() => DeleteWorkload(workload.WorkloadId)">Delete</button>
+                        <button class="btn btn-info" @onclick="() => NavigateToAddResource(workload.WorkloadId)">Add Resource</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<button class="btn btn-success" @onclick="NavigateToCreate">Create New Workload</button>
+
+@code {
+    private List<Workload>? workloads;
+
+    protected override async Task OnInitializedAsync()
+    {
+        workloads = await WorkloadService.GetWorkloadsAsync();
+    }
+
+    private void NavigateToCreate()
+    {
+        Navigation.NavigateTo("/workloads/create");
+    }
+
+    private void NavigateToEdit(int workloadId)
+    {
+        Navigation.NavigateTo($"/workloads/edit/{workloadId}");
+    }
+
+    private async Task DeleteWorkload(int workloadId)
+    {
+        await WorkloadService.DeleteWorkloadAsync(workloadId);
+        workloads = await WorkloadService.GetWorkloadsAsync();
+    }
+
+    private void NavigateToAddResource(int workloadId)
+    {
+        Navigation.NavigateTo($"/workloads/{workloadId}/add-resource");
+    }
+}
