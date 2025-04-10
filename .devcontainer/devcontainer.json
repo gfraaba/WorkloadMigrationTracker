@@ -24,5 +24,5 @@
             ]
         }
     },
-    "postCreateCommand": "/workspace/.scripts/wait-for-db.sh && cd /workspace/WebApi && dotnet tool restore && if [ ! -d \"Migrations\" ] || [ -z \"$(ls -A Migrations)\" ]; then ~/.dotnet/tools/dotnet-ef migrations add InitialCreate; fi && ~/.dotnet/tools/dotnet-ef database update && echo 'Container is ready!' && ls -la && pwsh --version && echo \"PLATFORM environment variable is set to: $PLATFORM\""
+    "postCreateCommand": "/workspace/.scripts/wait-for-db.sh && cd /workspace/WebApi && dotnet tool restore && if [ ! -d \"Migrations\" ] || [ -z \"$(ls -A Migrations)\" ]; then ~/.dotnet/tools/dotnet-ef migrations add InitialCreate; fi && ~/.dotnet/tools/dotnet-ef database update && echo 'Container is ready!' && ls -la && pwsh --version"
 }

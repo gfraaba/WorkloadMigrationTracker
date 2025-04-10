@@ -3,9 +3,8 @@ services:
     build:
       context: ..
       dockerfile: .devcontainer/dev.Dockerfile
-      args:
-        PLATFORM: ${PLATFORM}
-    platform: ${PLATFORM}      # Explicit platform declaration
+    platform: ${DOCKER_PLATFORM}
+    hostname: dev
     environment:
       DOTNET_CLI_TELEMETRY_OPTOUT: "true"
       DB_PASSWORD: ${DB_PASSWORD}
@@ -23,10 +22,9 @@ services:
       context: ..
       dockerfile: .devcontainer/db.Dockerfile
       args:
-        PLATFORM: ${PLATFORM}
-    platform: ${PLATFORM}      # Explicit platform declaration
-    hostname: db # ← This is your server name and this makes the hostname permanent
-    # container_name: mssql # ← Optional but recommended
+        PLATFORM: ${DOCKER_PLATFORM} # The 'platform' directive in docker-compose.yml alone is insufficient for the base image: mcr.microsoft.com/mssql/server:2022-CU18-ubuntu-22.04.
+    platform: ${DOCKER_PLATFORM}
+    hostname: db # ← This is your server name, otherwise docker container ID will be used!
     environment:
       SA_PASSWORD: ${DB_PASSWORD}
       ACCEPT_EULA: "Y"
@@ -34,7 +32,7 @@ services:
       MSSQL_INITIALIZE: "true"
       MSSQL_OPTIONS: "-N -C" # -N/TrustServerCertificate=True: Bypasses certificate validation | -C/Encrypt=True: Encrypts connection
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -U sa -P $${SA_PASSWORD} -Q \"SELECT 1\" || exit 1"]
+      test: ["CMD-SHELL", "sqlcmd -U sa -P $${SA_PASSWORD} -Q \"SELECT 1\" -C -N || exit 1"]
       interval: 15s
       timeout: 30s
       retries: 10

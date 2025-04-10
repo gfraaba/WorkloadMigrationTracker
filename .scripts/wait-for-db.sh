@@ -1,5 +1,5 @@
 #!/bin/bash
-# *NOTE*: This DID NOT work! This script is used to wait for SQL Server to be ready before running any other commands.
+# This script is used to wait for SQL Server to be ready before running any other commands.
 set -e
 
 echo "Waiting for SQL Server to be ready..."

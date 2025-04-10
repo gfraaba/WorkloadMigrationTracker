@@ -1,6 +1,9 @@
 # Ignore environment variable files
 .env
 
+# Ignore all files and folders in _IGNORE directory
+_IGNORE/
+
 # Ignore build output directories
 bin/
 obj/

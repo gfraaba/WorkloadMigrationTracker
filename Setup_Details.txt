@@ -64,12 +64,15 @@ cd /workspace/WebApi/
 rm -rf Migrations
 dotnet ef migrations add InitialCreate # To undo this action, use 'ef migrations remove'
 dotnet ef database update
-/opt/mssql-tools18/bin/sqlcmd -S db -U sa -P "$DB_PASSWORD" -Q "SELECT @@SERVERNAME" -C -N
+which sqlcmd
+    # /opt/mssql-tools18/bin/sqlcmd
+sqlcmd -S db -U sa -P "$DB_PASSWORD" -Q "SELECT @@SERVERNAME" -C -N
 
 dotnet clean
 dotnet build
 dotnet run
 http://localhost:8080/swagger
+http://localhost:8080/api/ResourceTypes
 
 # --------------------------------------------------------------
 
@@ -79,14 +82,34 @@ docker exec -it <db_container_id> id
     # Should show uid=10001(mssql) gid=0(root)
 
 # Inside Dev Container:
-uname -m # aarch64 on macOS (to display the architecture)
+uname -m
+    # aarch64
+uname -a
+    # Linux daf84eeb40fe 6.10.14-linuxkit #1 SMP Thu Mar 20 16:32:56 UTC 2025 aarch64 GNU/Linux
 
 # Inside DB Container: (after running this command: docker exec -it <db_container_id> bash)
+uname -m
+    # x86_64
+uname -a
+    # Linux db 6.10.14-linuxkit #1 SMP Thu Mar 20 16:32:56 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux
 ls -la /docker-entrypoint-initdb.d/
 cat /etc/apt/sources.list.d/mssql-release.list
+cat /etc/apt/sources.list.d/microsoft-prod.list
+apt-cache depends mssql-tools18
+which sqlcmd
+    # /opt/mssql-tools18/bin/sqlcmd
 DB_PASSWORD="YourStrong@Passw0rd"
-/opt/mssql-tools/bin/sqlcmd -U sa -P $DB_PASSWORD -Q "SELECT @@VERSION"
-/opt/mssql-tools/bin/sqlcmd -U sa -P $DB_PASSWORD -Q "SELECT @@SERVERNAME"
-/opt/mssql-tools/bin/sqlcmd -U sa -P $DB_PASSWORD -Q "SELECT name FROM sys.databases"
-/opt/mssql-tools/bin/sqlcmd -U sa -P $DB_PASSWORD -d WorkloadMigration -Q "SELECT name FROM sys.tables"
-/opt/mssql-tools/bin/sqlcmd -U sa -P $DB_PASSWORD -d WorkloadMigration -Q "SELECT * FROM ResourceTypes"
+sqlcmd -U sa -P $DB_PASSWORD -Q "SELECT @@VERSION" -C -N
+sqlcmd -U sa -P $DB_PASSWORD -Q "SELECT @@VERSION" -C -N
+sqlcmd -U sa -P $DB_PASSWORD -Q "SELECT @@SERVERNAME" -C -N
+sqlcmd -U sa -P $DB_PASSWORD -Q "SELECT name FROM sys.databases" -C -N
+sqlcmd -U sa -P $DB_PASSWORD -d WorkloadMigration -Q "SELECT name FROM sys.tables" -C -N
+sqlcmd -U sa -P $DB_PASSWORD -d WorkloadMigration -Q "SELECT * FROM ResourceTypes" -C -N
+
+# ------------ Dockerfile & docker-compose.yml & devcontainer.json
+# Base Image Compatibility: Ensure that the base image supports the specified platform (e.g., linux/arm64 or linux/amd64). You can check supported platforms using:
+docker buildx imagetools inspect mcr.microsoft.com/mssql/server:2022-CU18-ubuntu-22.04
+# For DB container (macOS arm64 as host): The correct and consistent approach for DB container setup is to use ARG PLATFORM and FROM --platform in the Dockerfile. The platform directive in docker-compose.yml alone is insufficient for this use case.
+    # Unwanted behavior: When using platform: linux/arm64 in docker-compose.yml, the uname -m command inside the container outputs x86_64 and you see a WARNING in Docker logs while the image is being built: 
+    # When using ARG PLATFORM and FROM --platform=${PLATFORM} in the Dockerfile, the uname -m command outputs x86_64, but you don't see the WARNING!
+

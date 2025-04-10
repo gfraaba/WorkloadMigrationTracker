@@ -1,4 +1,3 @@
-# Official ARM64 SQL Server 2022 CU18
 ARG PLATFORM
 FROM --platform=${PLATFORM} mcr.microsoft.com/mssql/server:2022-CU18-ubuntu-22.04
 
@@ -20,29 +19,21 @@ RUN curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /us
 
 # 3. Install tools
 RUN apt-get update && \
-    ACCEPT_EULA=Y apt-get install -y mssql-tools unixodbc && \
+    ACCEPT_EULA=Y apt-get install -y msodbcsql18 mssql-tools18 unixodbc && \
     rm -rf /var/lib/apt/lists/*
 
-# 4. Initialize scripts
-RUN mkdir -p /docker-entrypoint-initdb.d && \
-    chmod 775 /docker-entrypoint-initdb.d
+# Update PATH to include mssql-tools
+ENV PATH="/opt/mssql-tools18/bin:${PATH}"
 
-# COPY --chown=mssql:root ./Database/Scripts/*.sql /docker-entrypoint-initdb.d/
-# RUN chmod 750 /docker-entrypoint-initdb.d/*.sql
-
-# # 5. Add entrypoint script
-# COPY ./Database/Scripts/init-db.sh /usr/local/bin/
-# RUN chmod +x /usr/local/bin/init-db.sh
-
-# Copy initialization files
-COPY ./Database/Scripts/ /docker-entrypoint-initdb.d/
-COPY ./Database/Scripts/init-db.sh /usr/local/bin/
-
-RUN chmod +x /usr/local/bin/init-db.sh && \
-    chmod -R 750 /docker-entrypoint-initdb.d && \
-    chown -R mssql:root /docker-entrypoint-initdb.d && \
+# Copy initialization files and set permissions
+COPY ./Database/ /database/
+RUN chmod +x /database/Scripts/init-db.sh && \
+    chmod -R 750 /database && \
+    chown -R mssql:root /database && \
     mkdir -p /var/opt/mssql/log && \
+    chmod 770 /var/opt/mssql/log && \
     chown mssql:root /var/opt/mssql/log
 
 USER mssql
-# CMD ["/usr/local/bin/init-db.sh"]
+
+# The base image mcr.microsoft.com/mssql/server is pre-configured to start the MSSQL server when the container runs.
