@@ -89,6 +89,30 @@ public class AppDbContext : DbContext
         SeedData(modelBuilder);
     }
 
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        // Save changes to the database
+        var result = await base.SaveChangesAsync(cancellationToken);
+
+        // Automatically load navigation properties for newly added entities
+        foreach (var entry in ChangeTracker.Entries())
+        {
+            if (entry.State == EntityState.Added)
+            {
+                // Load navigation properties for the added entity
+                foreach (var navigation in entry.Navigations)
+                {
+                    if (!navigation.IsLoaded)
+                    {
+                        await navigation.LoadAsync(cancellationToken);
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
     private void SeedData(ModelBuilder modelBuilder)
     {
         // Environment Types

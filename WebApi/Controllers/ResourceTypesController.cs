@@ -43,6 +43,11 @@ public class ResourceTypesController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<ResourceType>> PostResourceType(ResourceType resourceType)
     {
+        // Ensure the CategoryId is valid
+        if (!await IsCategoryIdValid(resourceType.CategoryId))
+        {
+            return BadRequest(new { error = "Invalid CategoryId!" });
+        }
         _context.ResourceTypes.Add(resourceType);
         await _context.SaveChangesAsync();
 
@@ -55,7 +60,13 @@ public class ResourceTypesController : ControllerBase
     {
         if (id != resourceType.TypeId)
         {
-            return BadRequest();
+            return BadRequest(new { error = "TypeId doesn't match!" });
+        }
+
+        // Ensure the CategoryId is valid
+        if (!await IsCategoryIdValid(resourceType.CategoryId))
+        {
+            return BadRequest(new { error = "Invalid CategoryId!" });
         }
 
         _context.Entry(resourceType).State = EntityState.Modified;
@@ -98,5 +109,10 @@ public class ResourceTypesController : ControllerBase
     private bool ResourceTypeExists(int id)
     {
         return _context.ResourceTypes.Any(rt => rt.TypeId == id);
+    }
+
+    private async Task<bool> IsCategoryIdValid(int categoryId)
+    {
+        return await _context.ResourceCategories.AnyAsync(c => c.CategoryId == categoryId);
     }
 }

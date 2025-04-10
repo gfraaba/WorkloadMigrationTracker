@@ -6,18 +6,18 @@ ENV MSSQL_AGENT_ENABLED=false \
     MSSQL_MEMORY_LIMIT_MB=2048 \
     MSSQL_LCID=1033
 
-# 1. Install prerequisites with proper permissions
+# Install prerequisites with proper permissions
 USER root
 RUN mkdir -p /var/lib/apt/lists/partial && \
     chmod 755 /var/lib/apt/lists && \
     apt-get update && \
     apt-get install -y curl gnupg
 
-# 2. Configure Microsoft packages (ARM64-specific)
+# Configure Microsoft packages (ARM64-specific)
 RUN curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /usr/share/keyrings/microsoft.gpg && \
     echo "deb [arch=arm64 signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/ubuntu/22.04/prod jammy main" > /etc/apt/sources.list.d/mssql-release.list
 
-# 3. Install tools
+# Install tools
 RUN apt-get update && \
     ACCEPT_EULA=Y apt-get install -y msodbcsql18 mssql-tools18 unixodbc && \
     rm -rf /var/lib/apt/lists/*
@@ -27,8 +27,7 @@ ENV PATH="/opt/mssql-tools18/bin:${PATH}"
 
 # Copy initialization files and set permissions
 COPY ./Database/ /database/
-RUN chmod +x /database/Scripts/init-db.sh && \
-    chmod -R 750 /database && \
+RUN chmod -R 750 /database && \
     chown -R mssql:root /database && \
     mkdir -p /var/opt/mssql/log && \
     chmod 770 /var/opt/mssql/log && \

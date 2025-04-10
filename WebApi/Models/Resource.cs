@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace WebApi.Models;
 
@@ -14,15 +15,15 @@ public class Resource
     public int StatusId { get; set; }
     
     // Navigation Properties
-    [JsonIgnore] // Prevent circular reference
+    [ValidateNever]
     public required Workload Workload { get; set; }
     
-    [JsonIgnore] // Prevent circular reference
+    [ValidateNever]
     public required WorkloadEnvironmentRegion WorkloadEnvironmentRegion { get; set; }
     
-    [JsonIgnore] // Prevent circular reference
+    [ValidateNever]
     public required ResourceType ResourceType { get; set; }
     
-    [JsonIgnore] // Prevent circular reference
+    [ValidateNever]
     public required ResourceStatus Status { get; set; }
 }

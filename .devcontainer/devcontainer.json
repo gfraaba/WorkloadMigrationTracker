@@ -14,12 +14,13 @@
                 }
             },
             "extensions": [
+                "ms-vscode.powershell",
+                "ms-dotnettools.csharp",
+                "ms-dotnettools.csdevkit",
+                "ms-azuretools.vscode-azuresql",
                 "dbaeumer.vscode-eslint",
                 "esbenp.prettier-vscode",
                 "andyyaldoo.vscode-json",
-                "ms-dotnettools.csharp",
-                "ms-azuretools.vscode-azuresql",
-                "ms-dotnettools.csdevkit",
                 "zainchen.json"
             ]
         }
