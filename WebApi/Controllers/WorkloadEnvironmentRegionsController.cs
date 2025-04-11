@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Data;
-using Shared.Models; // Updated namespace for Workload model
+using WebApi.Models;
+using Shared.DTOs;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -14,25 +15,66 @@ public class WorkloadEnvironmentRegionsController : ControllerBase
         _context = context;
     }
 
-    // GET: api/WorkloadEnvironmentRegions
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<WorkloadEnvironmentRegion>>> GetWorkloadEnvironmentRegions()
+    private IQueryable<WorkloadEnvironmentRegion> IncludeRelatedEntities()
     {
-        return await _context.WorkloadEnvironmentRegions
+        return _context.WorkloadEnvironmentRegions
             .Include(w => w.Workload)
             .Include(w => w.EnvironmentType)
             .Include(w => w.Region)
-            .ToListAsync();
+            .Include(w => w.Resources)
+            .ThenInclude(r => r.ResourceType);
+    }
+
+    private WorkloadEnvironmentRegionDto MapToDto(WorkloadEnvironmentRegion workloadEnvironmentRegion)
+    {
+        return new WorkloadEnvironmentRegionDto
+        {
+            WorkloadEnvironmentRegionId = workloadEnvironmentRegion.WorkloadEnvironmentRegionId,
+            AzureSubscriptionId = workloadEnvironmentRegion.AzureSubscriptionId,
+            ResourceGroupName = workloadEnvironmentRegion.ResourceGroupName,
+            Name = workloadEnvironmentRegion.ResourceGroupName,
+            EnvironmentTypeId = workloadEnvironmentRegion.EnvironmentTypeId,
+            RegionId = workloadEnvironmentRegion.RegionId,
+            WorkloadId = workloadEnvironmentRegion.WorkloadId,
+            EnvironmentTypeName = workloadEnvironmentRegion.EnvironmentType?.Name ?? string.Empty,
+            RegionName = workloadEnvironmentRegion.Region?.Name ?? string.Empty,
+            Resources = workloadEnvironmentRegion.Resources.Select(r => new ResourceDto
+            {
+                ResourceId = r.ResourceId,
+                Name = r.Name,
+                WorkloadEnvironmentRegionId = r.WorkloadEnvironmentRegionId,
+                ResourceTypeId = r.ResourceTypeId,
+                Status = r.Status,
+                ResourceType = r.ResourceType != null ? new ResourceTypeDto
+                {
+                    TypeId = r.ResourceType.TypeId,
+                    Name = r.ResourceType.Name,
+                    AzureResourceType = r.ResourceType.AzureResourceType,
+                    CategoryId = r.ResourceType.CategoryId,
+                    Category = r.ResourceType.Category != null ? new ResourceCategoryDto
+                    {
+                        CategoryId = r.ResourceType.Category.CategoryId,
+                        Name = r.ResourceType.Category.Name
+                    } : null
+                } : null
+            }).ToList()
+        };
+    }
+
+    // GET: api/WorkloadEnvironmentRegions
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<WorkloadEnvironmentRegionDto>>> GetWorkloadEnvironmentRegions()
+    {
+        var workloadEnvironmentRegions = await IncludeRelatedEntities().ToListAsync();
+        var workloadEnvironmentRegionDtos = workloadEnvironmentRegions.Select(MapToDto);
+        return Ok(workloadEnvironmentRegionDtos);
     }
 
     // GET: api/WorkloadEnvironmentRegions/5
     [HttpGet("{id}")]
-    public async Task<ActionResult<WorkloadEnvironmentRegion>> GetWorkloadEnvironmentRegion(int id)
+    public async Task<ActionResult<WorkloadEnvironmentRegionDto>> GetWorkloadEnvironmentRegion(int id)
     {
-        var workloadEnvironmentRegion = await _context.WorkloadEnvironmentRegions
-            .Include(w => w.Workload)
-            .Include(w => w.EnvironmentType)
-            .Include(w => w.Region)
+        var workloadEnvironmentRegion = await IncludeRelatedEntities()
             .FirstOrDefaultAsync(w => w.WorkloadEnvironmentRegionId == id);
 
         if (workloadEnvironmentRegion == null)
@@ -40,16 +82,14 @@ public class WorkloadEnvironmentRegionsController : ControllerBase
             return NotFound();
         }
 
-        return workloadEnvironmentRegion;
+        return Ok(MapToDto(workloadEnvironmentRegion));
     }
 
     // GET: api/WorkloadEnvironmentRegions/workload/{workloadId}
     [HttpGet("workload/{workloadId}")]
-    public async Task<ActionResult<IEnumerable<WorkloadEnvironmentRegion>>> GetLandingZonesForWorkload(int workloadId)
+    public async Task<ActionResult<IEnumerable<WorkloadEnvironmentRegionDto>>> GetLandingZonesForWorkload(int workloadId)
     {
-        var landingZones = await _context.WorkloadEnvironmentRegions
-            .Include(w => w.EnvironmentType)
-            .Include(w => w.Region)
+        var landingZones = await IncludeRelatedEntities()
             .Where(w => w.WorkloadId == workloadId)
             .ToListAsync();
 
@@ -58,7 +98,8 @@ public class WorkloadEnvironmentRegionsController : ControllerBase
             return NotFound($"No landing zones found for workload with ID {workloadId}.");
         }
 
-        return Ok(landingZones);
+        var landingZoneDtos = landingZones.Select(MapToDto);
+        return Ok(landingZoneDtos);
     }
 
     // POST: api/WorkloadEnvironmentRegions

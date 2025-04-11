@@ -1,5 +1,5 @@
 @page "/add-resource/{workloadEnvironmentRegionId:int}"
-@using Shared.Models
+@using Shared.DTOs
 @using WebApp.Services
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.AspNetCore.Components
@@ -64,39 +64,18 @@
 
 @code {
     [Parameter] public int workloadEnvironmentRegionId { get; set; }
-    private List<ResourceStatus> statuses = new();
-    private Resource newResource = new Resource
+    private List<ResourceStatusDto> statuses = new();
+    private ResourceDto newResource = new ResourceDto
     {
-        Name = string.Empty, // Explicitly initializing Name to an empty string
-        WorkloadEnvironmentRegionId = 0,
-        WorkloadEnvironmentRegion = new WorkloadEnvironmentRegion
-        {
-            Workload = new Workload
-            {
-                Name = "",
-                AzureNamePrefix = ""
-            },
-            EnvironmentType = new EnvironmentType
-            {
-                Name = ""
-            },
-            Region = new AzureRegion
-            {
-                Name = "",
-                Code = ""
-            }
-        },
-        ResourceType = new ResourceType
-        {
-            Name = "",
-            AzureResourceType = ""
-        },
-        Status = ""
+        Name = string.Empty,
+        ResourceTypeId = 0,
+        Status = string.Empty,
+        WorkloadEnvironmentRegionId = 0
     };
 
-    private List<EnvironmentType> environments = new();
-    private List<AzureRegion> regions = new();
-    private List<ResourceType> resourceTypes = new();
+    private List<EnvironmentTypeDto> environments = new();
+    private List<AzureRegionDto> regions = new();
+    private List<ResourceTypeDto> resourceTypes = new();
     private int? selectedEnvironment;
     private int? selectedRegion;
 
@@ -122,8 +101,6 @@
     {
         // Map selected values to newResource properties
         newResource.WorkloadEnvironmentRegionId = workloadEnvironmentRegionId;
-        @* newResource.WorkloadEnvironmentRegion.EnvironmentType.EnvironmentTypeId = selectedEnvironment ?? 0;
-        newResource.WorkloadEnvironmentRegion.Region.RegionId = selectedRegion ?? 0; *@
 
         Console.WriteLine($"Submitting Resource: Name={newResource.Name}, ResourceTypeId={newResource.ResourceTypeId}, Status={newResource.Status}, WorkloadEnvironmentRegionId={newResource.WorkloadEnvironmentRegionId}");
         await WorkloadService.AddResourceToWorkloadAsync(workloadEnvironmentRegionId, newResource);

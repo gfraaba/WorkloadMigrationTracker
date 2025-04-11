@@ -24,7 +24,7 @@ namespace WebApi.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Shared.Models.AzureRegion", b =>
+            modelBuilder.Entity("WebApi.Models.AzureRegion", b =>
                 {
                     b.Property<int>("RegionId")
                         .ValueGeneratedOnAdd()
@@ -67,7 +67,7 @@ namespace WebApi.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Shared.Models.EnvironmentType", b =>
+            modelBuilder.Entity("WebApi.Models.EnvironmentType", b =>
                 {
                     b.Property<int>("EnvironmentTypeId")
                         .ValueGeneratedOnAdd()
@@ -107,7 +107,7 @@ namespace WebApi.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Shared.Models.Resource", b =>
+            modelBuilder.Entity("WebApi.Models.Resource", b =>
                 {
                     b.Property<int>("ResourceId")
                         .ValueGeneratedOnAdd()
@@ -144,7 +144,7 @@ namespace WebApi.Migrations
                     b.ToTable("Resources");
                 });
 
-            modelBuilder.Entity("Shared.Models.ResourceCategory", b =>
+            modelBuilder.Entity("WebApi.Models.ResourceCategory", b =>
                 {
                     b.Property<int>("CategoryId")
                         .ValueGeneratedOnAdd()
@@ -205,7 +205,7 @@ namespace WebApi.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Shared.Models.ResourceStatus", b =>
+            modelBuilder.Entity("WebApi.Models.ResourceStatus", b =>
                 {
                     b.Property<int>("StatusId")
                         .ValueGeneratedOnAdd()
@@ -239,7 +239,7 @@ namespace WebApi.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Shared.Models.ResourceType", b =>
+            modelBuilder.Entity("WebApi.Models.ResourceType", b =>
                 {
                     b.Property<int>("TypeId")
                         .ValueGeneratedOnAdd()
@@ -443,7 +443,7 @@ namespace WebApi.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Shared.Models.Workload", b =>
+            modelBuilder.Entity("WebApi.Models.Workload", b =>
                 {
                     b.Property<int>("WorkloadId")
                         .ValueGeneratedOnAdd()
@@ -473,7 +473,7 @@ namespace WebApi.Migrations
                     b.ToTable("Workloads");
                 });
 
-            modelBuilder.Entity("Shared.Models.WorkloadEnvironmentRegion", b =>
+            modelBuilder.Entity("WebApi.Models.WorkloadEnvironmentRegion", b =>
                 {
                     b.Property<int>("WorkloadEnvironmentRegionId")
                         .ValueGeneratedOnAdd()
@@ -508,27 +508,27 @@ namespace WebApi.Migrations
                     b.ToTable("WorkloadEnvironmentRegions");
                 });
 
-            modelBuilder.Entity("Shared.Models.Resource", b =>
+            modelBuilder.Entity("WebApi.Models.Resource", b =>
                 {
-                    b.HasOne("Shared.Models.ResourceStatus", "Status")
+                    b.HasOne("WebApi.Models.ResourceStatus", "Status")
                         .WithMany("Resources")
                         .HasForeignKey("StatusId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Shared.Models.ResourceType", "ResourceType")
+                    b.HasOne("WebApi.Models.ResourceType", "ResourceType")
                         .WithMany("Resources")
                         .HasForeignKey("TypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Shared.Models.WorkloadEnvironmentRegion", "WorkloadEnvironmentRegion")
+                    b.HasOne("WebApi.Models.WorkloadEnvironmentRegion", "WorkloadEnvironmentRegion")
                         .WithMany("Resources")
                         .HasForeignKey("WorkloadEnvironmentRegionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Shared.Models.Workload", "Workload")
+                    b.HasOne("WebApi.Models.Workload", "Workload")
                         .WithMany("Resources")
                         .HasForeignKey("WorkloadId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -543,9 +543,9 @@ namespace WebApi.Migrations
                     b.Navigation("WorkloadEnvironmentRegion");
                 });
 
-            modelBuilder.Entity("Shared.Models.ResourceType", b =>
+            modelBuilder.Entity("WebApi.Models.ResourceType", b =>
                 {
-                    b.HasOne("Shared.Models.ResourceCategory", "Category")
+                    b.HasOne("WebApi.Models.ResourceCategory", "Category")
                         .WithMany("ResourceTypes")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -554,21 +554,21 @@ namespace WebApi.Migrations
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("Shared.Models.WorkloadEnvironmentRegion", b =>
+            modelBuilder.Entity("WebApi.Models.WorkloadEnvironmentRegion", b =>
                 {
-                    b.HasOne("Shared.Models.EnvironmentType", "EnvironmentType")
+                    b.HasOne("WebApi.Models.EnvironmentType", "EnvironmentType")
                         .WithMany()
                         .HasForeignKey("EnvironmentTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Shared.Models.AzureRegion", "Region")
+                    b.HasOne("WebApi.Models.AzureRegion", "Region")
                         .WithMany()
                         .HasForeignKey("RegionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Shared.Models.Workload", "Workload")
+                    b.HasOne("WebApi.Models.Workload", "Workload")
                         .WithMany("WorkloadEnvironmentRegions")
                         .HasForeignKey("WorkloadId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -581,29 +581,29 @@ namespace WebApi.Migrations
                     b.Navigation("Workload");
                 });
 
-            modelBuilder.Entity("Shared.Models.ResourceCategory", b =>
+            modelBuilder.Entity("WebApi.Models.ResourceCategory", b =>
                 {
                     b.Navigation("ResourceTypes");
                 });
 
-            modelBuilder.Entity("Shared.Models.ResourceStatus", b =>
+            modelBuilder.Entity("WebApi.Models.ResourceStatus", b =>
                 {
                     b.Navigation("Resources");
                 });
 
-            modelBuilder.Entity("Shared.Models.ResourceType", b =>
+            modelBuilder.Entity("WebApi.Models.ResourceType", b =>
                 {
                     b.Navigation("Resources");
                 });
 
-            modelBuilder.Entity("Shared.Models.Workload", b =>
+            modelBuilder.Entity("WebApi.Models.Workload", b =>
                 {
                     b.Navigation("Resources");
 
                     b.Navigation("WorkloadEnvironmentRegions");
                 });
 
-            modelBuilder.Entity("Shared.Models.WorkloadEnvironmentRegion", b =>
+            modelBuilder.Entity("WebApi.Models.WorkloadEnvironmentRegion", b =>
                 {
                     b.Navigation("Resources");
                 });

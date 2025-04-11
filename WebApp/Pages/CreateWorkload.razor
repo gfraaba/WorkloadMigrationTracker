@@ -1,5 +1,5 @@
 @page "/workloads/create"
-@using Shared.Models
+@using Shared.DTOs
 @using WebApp.Services
 
 @inject WorkloadService WorkloadService
@@ -37,7 +37,7 @@
 </EditForm>
 
 @code {
-    private Workload newWorkload = new Workload { Name = "", Description = "", AzureNamePrefix = "", PrimaryPOC = "", SecondaryPOC = "" };
+    private WorkloadDto newWorkload = new WorkloadDto { Name = "", Description = "", AzureNamePrefix = "", PrimaryPOC = "", SecondaryPOC = "" };
 
     private async Task HandleValidSubmit()
     {

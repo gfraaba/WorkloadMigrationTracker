@@ -7,6 +7,9 @@ public class WorkloadEnvironmentRegionDto
     public string? ResourceGroupName { get; set; }
     public int EnvironmentTypeId { get; set; }
     public int RegionId { get; set; }
-    public string? EnvironmentTypeName { get; set; } // Flattened property
-    public string? RegionName { get; set; } // Flattened property
+    public int WorkloadId { get; set; }
+    public string EnvironmentTypeName { get; set; } = string.Empty;
+    public string RegionName { get; set; } = string.Empty;
+    public string? Name { get; set; } // Added Name property
+    public ICollection<ResourceDto> Resources { get; set; } = new List<ResourceDto>(); // Added Resources property
 }

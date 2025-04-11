@@ -6,8 +6,8 @@ public class WorkloadDto
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string AzureNamePrefix { get; set; } = string.Empty;
+    public int LandingZonesCount { get; set; }
     public string? PrimaryPOC { get; set; }
     public string? SecondaryPOC { get; set; }
-    public int LandingZonesCount { get; set; } // Computed property
     public List<WorkloadEnvironmentRegionDto> WorkloadEnvironmentRegions { get; set; } = new();
 }

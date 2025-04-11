@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Data;
-using Shared.Models; // Replace WebApi.Models with Shared.Models
+using WebApi.Models;
+using Shared.DTOs;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -14,29 +15,49 @@ public class ResourceTypesController : ControllerBase
         _context = context;
     }
 
+    private IQueryable<ResourceType> IncludeRelatedEntities()
+    {
+        return _context.ResourceTypes.Include(rt => rt.Category);
+    }
+
+    private ResourceTypeDto MapToDto(ResourceType resourceType)
+    {
+        return new ResourceTypeDto
+        {
+            TypeId = resourceType.TypeId,
+            Name = resourceType.Name,
+            AzureResourceType = resourceType.AzureResourceType,
+            CategoryId = resourceType.CategoryId,
+            Category = resourceType.Category != null ? new ResourceCategoryDto
+            {
+                CategoryId = resourceType.Category.CategoryId,
+                Name = resourceType.Category.Name,
+                AzureServiceType = resourceType.Category.AzureServiceType
+            } : null
+        };
+    }
+
     // GET: api/ResourceTypes
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ResourceType>>> GetResourceTypes()
+    public async Task<ActionResult<IEnumerable<ResourceTypeDto>>> GetResourceTypes()
     {
-        return await _context.ResourceTypes
-            .Include(rt => rt.Category) // Include related ResourceCategory
-            .ToListAsync();
+        var resourceTypes = await IncludeRelatedEntities().ToListAsync();
+        var resourceTypeDtos = resourceTypes.Select(MapToDto);
+        return Ok(resourceTypeDtos);
     }
 
     // GET: api/ResourceTypes/5
     [HttpGet("{id}")]
-    public async Task<ActionResult<ResourceType>> GetResourceType(int id)
+    public async Task<ActionResult<ResourceTypeDto>> GetResourceType(int id)
     {
-        var resourceType = await _context.ResourceTypes
-            .Include(rt => rt.Category) // Include related ResourceCategory
-            .FirstOrDefaultAsync(rt => rt.TypeId == id);
+        var resourceType = await IncludeRelatedEntities().FirstOrDefaultAsync(rt => rt.TypeId == id);
 
         if (resourceType == null)
         {
             return NotFound();
         }
 
-        return resourceType;
+        return Ok(MapToDto(resourceType));
     }
 
     // POST: api/ResourceTypes

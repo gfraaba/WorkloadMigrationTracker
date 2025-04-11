@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Data;
-using Shared.Models;
+using WebApi.Models;
+using Shared.DTOs;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -14,25 +15,42 @@ public class EnvironmentTypesController : ControllerBase
         _context = context;
     }
 
+    private IQueryable<EnvironmentType> IncludeRelatedEntities()
+    {
+        return _context.EnvironmentTypes;
+    }
+
+    private EnvironmentTypeDto MapToDto(EnvironmentType environmentType)
+    {
+        return new EnvironmentTypeDto
+        {
+            EnvironmentTypeId = environmentType.EnvironmentTypeId,
+            Name = environmentType.Name,
+            Description = environmentType.Description
+        };
+    }
+
     // GET: api/EnvironmentTypes
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<EnvironmentType>>> GetEnvironmentTypes()
+    public async Task<ActionResult<IEnumerable<EnvironmentTypeDto>>> GetEnvironmentTypes()
     {
-        return await _context.EnvironmentTypes.ToListAsync();
+        var environmentTypes = await IncludeRelatedEntities().ToListAsync();
+        var environmentTypeDtos = environmentTypes.Select(MapToDto);
+        return Ok(environmentTypeDtos);
     }
 
     // GET: api/EnvironmentTypes/5
     [HttpGet("{id}")]
-    public async Task<ActionResult<EnvironmentType>> GetEnvironmentType(int id)
+    public async Task<ActionResult<EnvironmentTypeDto>> GetEnvironmentType(int id)
     {
-        var environmentType = await _context.EnvironmentTypes.FindAsync(id);
+        var environmentType = await IncludeRelatedEntities().FirstOrDefaultAsync(et => et.EnvironmentTypeId == id);
 
         if (environmentType == null)
         {
             return NotFound();
         }
 
-        return environmentType;
+        return Ok(MapToDto(environmentType));
     }
 
     // GET: api/EnvironmentTypes/environments

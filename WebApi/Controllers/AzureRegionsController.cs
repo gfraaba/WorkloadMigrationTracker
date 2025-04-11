@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Data;
-using Shared.Models;
+using WebApi.Models;
+using Shared.DTOs;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -14,25 +15,43 @@ public class AzureRegionsController : ControllerBase
         _context = context;
     }
 
+    private IQueryable<AzureRegion> IncludeRelatedEntities()
+    {
+        return _context.AzureRegions;
+    }
+
+    private AzureRegionDto MapToDto(AzureRegion azureRegion)
+    {
+        return new AzureRegionDto
+        {
+            RegionId = azureRegion.RegionId,
+            Code = azureRegion.Code,
+            Name = azureRegion.Name,
+            IsActive = azureRegion.IsActive
+        };
+    }
+
     // GET: api/AzureRegions
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<AzureRegion>>> GetAzureRegions()
+    public async Task<ActionResult<IEnumerable<AzureRegionDto>>> GetAzureRegions()
     {
-        return await _context.AzureRegions.ToListAsync();
+        var azureRegions = await IncludeRelatedEntities().ToListAsync();
+        var azureRegionDtos = azureRegions.Select(MapToDto);
+        return Ok(azureRegionDtos);
     }
 
     // GET: api/AzureRegions/5
     [HttpGet("{id}")]
-    public async Task<ActionResult<AzureRegion>> GetAzureRegion(int id)
+    public async Task<ActionResult<AzureRegionDto>> GetAzureRegion(int id)
     {
-        var azureRegion = await _context.AzureRegions.FindAsync(id);
+        var azureRegion = await IncludeRelatedEntities().FirstOrDefaultAsync(ar => ar.RegionId == id);
 
         if (azureRegion == null)
         {
             return NotFound();
         }
 
-        return azureRegion;
+        return Ok(MapToDto(azureRegion));
     }
 
     // GET: api/AzureRegions/regions

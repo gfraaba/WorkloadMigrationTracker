@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Data;
-using Shared.Models;
+using WebApi.Models;
 using Shared.DTOs;
 
 [ApiController]
@@ -16,59 +16,58 @@ public class WorkloadsController : ControllerBase
         _context = context;
     }
 
-    // GET: api/Workloads
-    // [HttpGet]
-    // public async Task<ActionResult<IEnumerable<Workload>>> GetWorkloads()
-    // {
-    //     return await _context.Workloads
-    //         .Include(w => w.WorkloadEnvironmentRegions) // Ensure related data is included
-    //         .ToListAsync();
-    // }
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<WorkloadDto>>> GetWorkloads()
+    private IQueryable<Workload> IncludeRelatedEntities()
     {
-        var workloads = await _context.Workloads
+        return _context.Workloads
             .Include(w => w.WorkloadEnvironmentRegions)
                 .ThenInclude(wr => wr.EnvironmentType)
             .Include(w => w.WorkloadEnvironmentRegions)
-                .ThenInclude(wr => wr.Region)
-            .Select(w => new WorkloadDto
-            {
-                WorkloadId = w.WorkloadId,
-                Name = w.Name,
-                Description = w.Description,
-                AzureNamePrefix = w.AzureNamePrefix,
-                PrimaryPOC = w.PrimaryPOC,
-                SecondaryPOC = w.SecondaryPOC,
-                LandingZonesCount = w.WorkloadEnvironmentRegions.Count,
-                WorkloadEnvironmentRegions = w.WorkloadEnvironmentRegions.Select(wr => new WorkloadEnvironmentRegionDto
-                {
-                    WorkloadEnvironmentRegionId = wr.WorkloadEnvironmentRegionId,
-                    AzureSubscriptionId = wr.AzureSubscriptionId,
-                    ResourceGroupName = wr.ResourceGroupName,
-                    EnvironmentTypeId = wr.EnvironmentTypeId,
-                    RegionId = wr.RegionId,
-                    EnvironmentTypeName = wr.EnvironmentType != null ? wr.EnvironmentType.Name : null,
-                    RegionName = wr.Region != null ? wr.Region.Name : null
-                }).ToList()
-            })
-            .ToListAsync();
-
-        return Ok(workloads);
+                .ThenInclude(wr => wr.Region);
     }
 
-    // GET: api/Workloads/5
-    [HttpGet("{id}")]
-    public async Task<ActionResult<Workload>> GetWorkload(int id)
+    private WorkloadDto MapToDto(Workload workload)
     {
-        var workload = await _context.Workloads.FindAsync(id);
+        return new WorkloadDto
+        {
+            WorkloadId = workload.WorkloadId,
+            Name = workload.Name,
+            Description = workload.Description,
+            AzureNamePrefix = workload.AzureNamePrefix,
+            PrimaryPOC = workload.PrimaryPOC,
+            SecondaryPOC = workload.SecondaryPOC,
+            LandingZonesCount = workload.WorkloadEnvironmentRegions.Count,
+            WorkloadEnvironmentRegions = workload.WorkloadEnvironmentRegions.Select(wr => new WorkloadEnvironmentRegionDto
+            {
+                WorkloadEnvironmentRegionId = wr.WorkloadEnvironmentRegionId,
+                AzureSubscriptionId = wr.AzureSubscriptionId,
+                ResourceGroupName = wr.ResourceGroupName,
+                EnvironmentTypeId = wr.EnvironmentTypeId,
+                RegionId = wr.RegionId,
+                EnvironmentTypeName = wr.EnvironmentType?.Name ?? string.Empty,
+                RegionName = wr.Region?.Name ?? string.Empty
+            }).ToList()
+        };
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<WorkloadDto>>> GetWorkloads()
+    {
+        var workloads = await IncludeRelatedEntities().ToListAsync();
+        var workloadDtos = workloads.Select(MapToDto);
+        return Ok(workloadDtos);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<WorkloadDto>> GetWorkload(int id)
+    {
+        var workload = await IncludeRelatedEntities().FirstOrDefaultAsync(w => w.WorkloadId == id);
 
         if (workload == null)
         {
             return NotFound();
         }
 
-        return workload;
+        return Ok(MapToDto(workload));
     }
 
     // POST: api/Workloads

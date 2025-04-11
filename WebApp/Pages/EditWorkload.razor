@@ -1,5 +1,5 @@
 @page "/workloads/edit/{id:int}"
-@using Shared.Models
+@using Shared.DTOs
 @using WebApp.Services
 
 @inject WorkloadService WorkloadService
@@ -45,7 +45,7 @@ else
 
 @code {
     [Parameter] public int Id { get; set; }
-    private Workload? workload;
+    private WorkloadDto? workload;
 
     protected override async Task OnInitializedAsync()
     {

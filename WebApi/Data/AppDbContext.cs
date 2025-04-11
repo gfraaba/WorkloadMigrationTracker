@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Shared.Models; // Updated namespace for Workload model
+using WebApi.Models; // Updated namespace for Workload model
 
 namespace WebApi.Data;
 
@@ -54,6 +54,9 @@ public class AppDbContext : DbContext
                 .WithMany(c => c.ResourceTypes)
                 .HasForeignKey(rt => rt.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict); // Or your preferred delete behavior
+
+            // Automatically include the Category navigation property
+            entity.Navigation(rt => rt.Category).AutoInclude();
         });
 
         // Configure primary keys and relationships

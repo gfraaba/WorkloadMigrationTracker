@@ -1,5 +1,5 @@
 @page "/add-landing-zone/{workloadId:int}"
-@using Shared.Models
+@using Shared.DTOs
 @using WebApp.Services
 @inject WorkloadService WorkloadService
 @inject NavigationManager Navigation
@@ -41,17 +41,16 @@
 
 @code {
     [Parameter] public int WorkloadId { get; set; }
-    private WorkloadEnvironmentRegion newLandingZone = new WorkloadEnvironmentRegion
+    private WorkloadEnvironmentRegionDto newLandingZone = new WorkloadEnvironmentRegionDto
     {
-        WorkloadId = 0,
+        WorkloadEnvironmentRegionId = 0,
         EnvironmentTypeId = 0,
         RegionId = 0,
-        Workload = null, // Workload will be linked by WorkloadId
-        EnvironmentType = null, // EnvironmentType will be linked by EnvironmentTypeId
-        Region = null // Region will be linked by RegionId
+        AzureSubscriptionId = "",
+        ResourceGroupName = ""
     };
-    private List<EnvironmentType> environments = new();
-    private List<AzureRegion> regions = new();
+    private List<EnvironmentTypeDto> environments = new();
+    private List<AzureRegionDto> regions = new();
 
     protected override async Task OnInitializedAsync()
     {

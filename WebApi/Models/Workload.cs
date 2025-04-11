@@ -1,6 +1,6 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
-namespace Shared.Models;
+namespace WebApi.Models;
 
 public class Workload
 {

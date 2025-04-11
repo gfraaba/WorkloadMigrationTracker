@@ -1,5 +1,4 @@
 using System.Net.Http.Json;
-using Shared.Models;
 using Shared.DTOs;
 
 namespace WebApp.Services;
@@ -33,20 +32,20 @@ public class WorkloadService
         }
     }
 
-    public async Task CreateWorkloadAsync(Workload workload)
+    public async Task CreateWorkloadAsync(WorkloadDto workload)
     {
-        var response = await _httpClient.PostAsJsonAsync("workloads", workload);
+        var response = await _httpClient.PostAsJsonAsync("api/workloads", workload);
         response.EnsureSuccessStatusCode();
     }
 
-    public async Task<Workload> GetWorkloadByIdAsync(int id)
+    public async Task<WorkloadDto> GetWorkloadByIdAsync(int id)
     {
-        return await _httpClient.GetFromJsonAsync<Workload>($"workloads/{id}");
+        return await _httpClient.GetFromJsonAsync<WorkloadDto>($"api/workloads/{id}");
     }
 
-    public async Task UpdateWorkloadAsync(Workload workload)
+    public async Task UpdateWorkloadAsync(WorkloadDto workload)
     {
-        var response = await _httpClient.PutAsJsonAsync($"workloads/{workload.WorkloadId}", workload);
+        var response = await _httpClient.PutAsJsonAsync($"api/workloads/{workload.WorkloadId}", workload);
         response.EnsureSuccessStatusCode();
     }
 
@@ -56,7 +55,7 @@ public class WorkloadService
         response.EnsureSuccessStatusCode();
     }
 
-    public async Task AddResourceToWorkloadAsync(int workloadEnvironmentRegionId, Resource resource)
+    public async Task AddResourceToWorkloadAsync(int workloadEnvironmentRegionId, ResourceDto resource)
     {
         Console.WriteLine($"WorkloadService: Adding resource to LZ Id {workloadEnvironmentRegionId}.");
         Console.WriteLine($"Payload: {System.Text.Json.JsonSerializer.Serialize(resource)}");
@@ -73,41 +72,53 @@ public class WorkloadService
         }
     }
 
-    public async Task<List<EnvironmentType>> GetEnvironmentsAsync()
+    public async Task<List<EnvironmentTypeDto>> GetEnvironmentsAsync()
     {
         Console.WriteLine("WorkloadService: Fetching environments from API.");
-        return await _httpClient.GetFromJsonAsync<List<EnvironmentType>>("api/environmenttypes/environments") ?? new List<EnvironmentType>(); // Added 'api/' prefix to match the EnvironmentTypesController route
+        return await _httpClient.GetFromJsonAsync<List<EnvironmentTypeDto>>("api/environmenttypes/environments") ?? new List<EnvironmentTypeDto>();
     }
 
-    public async Task<List<AzureRegion>> GetRegionsAsync()
+    public async Task<List<AzureRegionDto>> GetRegionsAsync()
     {
         Console.WriteLine("WorkloadService: Fetching regions from API.");
-        return await _httpClient.GetFromJsonAsync<List<AzureRegion>>("api/azureregions/regions") ?? new List<AzureRegion>(); // Added 'api/' prefix to match the AzureRegionsController route
+        return await _httpClient.GetFromJsonAsync<List<AzureRegionDto>>("api/azureregions/regions") ?? new List<AzureRegionDto>();
     }
 
-    public async Task<List<ResourceType>> GetResourceTypesAsync()
+    public async Task<List<ResourceTypeDto>> GetResourceTypesAsync()
     {
         Console.WriteLine("WorkloadService: Fetching resource types from API.");
-        return await _httpClient.GetFromJsonAsync<List<ResourceType>>("api/resourcetypes") ?? new List<ResourceType>(); // Added 'api/' prefix to match the ResourceTypesController route
+        return await _httpClient.GetFromJsonAsync<List<ResourceTypeDto>>("api/resourcetypes") ?? new List<ResourceTypeDto>();
     }
 
-    public async Task<List<WorkloadEnvironmentRegion>> GetLandingZonesForWorkloadAsync(int workloadId)
+    public async Task<List<WorkloadEnvironmentRegionDto>> GetLandingZonesForWorkloadAsync(int workloadId)
     {
         Console.WriteLine($"WorkloadService: Fetching landing zones for workload {workloadId}.");
-        return await _httpClient.GetFromJsonAsync<List<WorkloadEnvironmentRegion>>($"api/workloadenvironmentregions/workload/{workloadId}") ?? new List<WorkloadEnvironmentRegion>();
+        return await _httpClient.GetFromJsonAsync<List<WorkloadEnvironmentRegionDto>>($"api/workloadenvironmentregions/workload/{workloadId}") ?? new List<WorkloadEnvironmentRegionDto>();
     }
 
-    public async Task<List<ResourceStatus>> GetStatusesAsync()
+    public async Task<List<ResourceStatusDto>> GetStatusesAsync()
     {
         Console.WriteLine("WorkloadService: Fetching statuses from API.");
-        return await _httpClient.GetFromJsonAsync<List<ResourceStatus>>("api/resourcestatuses") ?? new List<ResourceStatus>();
+        return await _httpClient.GetFromJsonAsync<List<ResourceStatusDto>>("api/resourcestatuses") ?? new List<ResourceStatusDto>();
     }
 
-    public async Task AddLandingZoneAsync(WorkloadEnvironmentRegion landingZone)
+    public async Task AddLandingZoneAsync(WorkloadEnvironmentRegionDto landingZone)
     {
         Console.WriteLine("WorkloadService: Adding a new landing zone.");
         var response = await _httpClient.PostAsJsonAsync("api/workloadenvironmentregions", landingZone);
         response.EnsureSuccessStatusCode();
         Console.WriteLine("WorkloadService: Landing zone added successfully.");
+    }
+
+    public async Task<List<ResourceDto>> GetResourcesForLandingZoneAsync(int landingZoneId)
+    {
+        Console.WriteLine($"WorkloadService: Fetching resources for landing zone {landingZoneId}.");
+        return await _httpClient.GetFromJsonAsync<List<ResourceDto>>($"api/resources/landing-zone/{landingZoneId}") ?? new List<ResourceDto>();
+    }
+
+    public async Task<List<ResourceDto>> GetResourcesAsync(int workloadEnvironmentRegionId)
+    {
+        Console.WriteLine($"Fetching resources for workload environment region ID: {workloadEnvironmentRegionId}");
+        return await _httpClient.GetFromJsonAsync<List<ResourceDto>>($"api/resources/landing-zone/{workloadEnvironmentRegionId}") ?? new List<ResourceDto>();
     }
 }

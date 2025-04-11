@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Data;
-using Shared.Models; // Replace WebApi.Models with Shared.Models
+using WebApi.Models;
+using Shared.DTOs;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -14,29 +15,49 @@ public class ResourceCategoriesController : ControllerBase
         _context = context;
     }
 
+    private IQueryable<ResourceCategory> IncludeRelatedEntities()
+    {
+        return _context.ResourceCategories.Include(rc => rc.ResourceTypes);
+    }
+
+    private ResourceCategoryDto MapToDto(ResourceCategory resourceCategory)
+    {
+        return new ResourceCategoryDto
+        {
+            CategoryId = resourceCategory.CategoryId,
+            Name = resourceCategory.Name,
+            AzureServiceType = resourceCategory.AzureServiceType,
+            ResourceTypes = resourceCategory.ResourceTypes.Select(rt => new ResourceTypeDto
+            {
+                TypeId = rt.TypeId,
+                Name = rt.Name,
+                AzureResourceType = rt.AzureResourceType,
+                CategoryId = rt.CategoryId
+            }).ToList()
+        };
+    }
+
     // GET: api/ResourceCategories
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ResourceCategory>>> GetResourceCategories()
+    public async Task<ActionResult<IEnumerable<ResourceCategoryDto>>> GetResourceCategories()
     {
-        return await _context.ResourceCategories
-            .Include(rc => rc.ResourceTypes) // Include related ResourceTypes
-            .ToListAsync();
+        var resourceCategories = await IncludeRelatedEntities().ToListAsync();
+        var resourceCategoryDtos = resourceCategories.Select(MapToDto);
+        return Ok(resourceCategoryDtos);
     }
 
     // GET: api/ResourceCategories/5
     [HttpGet("{id}")]
-    public async Task<ActionResult<ResourceCategory>> GetResourceCategory(int id)
+    public async Task<ActionResult<ResourceCategoryDto>> GetResourceCategory(int id)
     {
-        var resourceCategory = await _context.ResourceCategories
-            .Include(rc => rc.ResourceTypes) // Include related ResourceTypes
-            .FirstOrDefaultAsync(rc => rc.CategoryId == id);
+        var resourceCategory = await IncludeRelatedEntities().FirstOrDefaultAsync(rc => rc.CategoryId == id);
 
         if (resourceCategory == null)
         {
             return NotFound();
         }
 
-        return resourceCategory;
+        return Ok(MapToDto(resourceCategory));
     }
 
     // POST: api/ResourceCategories

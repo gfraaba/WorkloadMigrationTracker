@@ -33,9 +33,29 @@
                                 {
                                     <li>
                                         @landingZone.EnvironmentTypeName - @landingZone.RegionName
-                                        <button class="btn btn-sm btn-primary" @onclick="() => NavigateToAddResource(landingZone.WorkloadEnvironmentRegionId)">
-                                            Add Resource
+                                        <button class="btn btn-sm btn-primary" @onclick="() => ToggleResources(landingZone.WorkloadEnvironmentRegionId)">
+                                            @((expandedLandingZoneId == landingZone.WorkloadEnvironmentRegionId) ? "Hide Resources" : "View Resources")
                                         </button>
+                                        @if (expandedLandingZoneId == landingZone.WorkloadEnvironmentRegionId)
+                                        {
+                                            <ul>
+                                                @if (resources == null)
+                                                {
+                                                    <li>Loading...</li>
+                                                }
+                                                else if (!resources.Any())
+                                                {
+                                                    <li>No resources found.</li>
+                                                }
+                                                else
+                                                {
+                                                    @foreach (var resource in resources)
+                                                    {
+                                                        <li>@resource.Name (@resource.ResourceType.Name)</li>
+                                                    }
+                                                }
+                                            </ul>
+                                        }
                                     </li>
                                 }
                             </ul>
@@ -56,10 +76,27 @@
 @code {
     private List<WorkloadDto> workloads = new();
     private int? expandedWorkloadId = null;
+    private int? expandedLandingZoneId = null;
+    private List<ResourceDto>? resources = new();
 
     private void ToggleLandingZones(int workloadId)
     {
         expandedWorkloadId = expandedWorkloadId == workloadId ? null : workloadId;
+    }
+
+    private async Task ToggleResources(int workloadEnvironmentRegionId)
+    {
+        if (expandedLandingZoneId == workloadEnvironmentRegionId)
+        {
+            expandedLandingZoneId = null;
+            resources = null;
+        }
+        else
+        {
+            expandedLandingZoneId = workloadEnvironmentRegionId;
+            Console.WriteLine($"Fetching resources for landing zone ID: {workloadEnvironmentRegionId}");
+            resources = await WorkloadService.GetResourcesAsync(workloadEnvironmentRegionId);
+        }
     }
 
     protected override async Task OnInitializedAsync()

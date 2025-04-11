@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Data;
-using Shared.Models;
+using WebApi.Models;
+using Shared.DTOs;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -14,25 +15,41 @@ public class ResourceStatusesController : ControllerBase
         _context = context;
     }
 
+    private IQueryable<ResourceStatus> IncludeRelatedEntities()
+    {
+        return _context.ResourceStatuses;
+    }
+
+    private ResourceStatusDto MapToDto(ResourceStatus resourceStatus)
+    {
+        return new ResourceStatusDto
+        {
+            StatusId = resourceStatus.StatusId,
+            Name = resourceStatus.Name
+        };
+    }
+
     // GET: api/ResourceStatuses
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ResourceStatus>>> GetResourceStatuses()
+    public async Task<ActionResult<IEnumerable<ResourceStatusDto>>> GetResourceStatuses()
     {
-        return await _context.ResourceStatuses.ToListAsync();
+        var resourceStatuses = await IncludeRelatedEntities().ToListAsync();
+        var resourceStatusDtos = resourceStatuses.Select(MapToDto);
+        return Ok(resourceStatusDtos);
     }
 
     // GET: api/ResourceStatuses/5
     [HttpGet("{id}")]
-    public async Task<ActionResult<ResourceStatus>> GetResourceStatus(int id)
+    public async Task<ActionResult<ResourceStatusDto>> GetResourceStatus(int id)
     {
-        var resourceStatus = await _context.ResourceStatuses.FindAsync(id);
+        var resourceStatus = await IncludeRelatedEntities().FirstOrDefaultAsync(rs => rs.StatusId == id);
 
         if (resourceStatus == null)
         {
             return NotFound();
         }
 
-        return resourceStatus;
+        return Ok(MapToDto(resourceStatus));
     }
 
     // POST: api/ResourceStatuses

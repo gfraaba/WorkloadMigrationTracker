@@ -2,7 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Data;
-using Shared.Models;
+using WebApi.Models;
+using Shared.DTOs;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -15,31 +16,84 @@ public class ResourcesController : ControllerBase
         _context = context;
     }
 
-    // GET: api/Resources
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<Resource>>> GetResources()
+    private IQueryable<Resource> IncludeRelatedEntities()
     {
-        return await _context.Resources
+        return _context.Resources
             .Include(r => r.WorkloadEnvironmentRegion)
             .Include(r => r.ResourceType)
-            .ToListAsync();
+            .ThenInclude(rt => rt.Category);
+    }
+
+    private ResourceDto MapToDto(Resource resource)
+    {
+        return new ResourceDto
+        {
+            ResourceId = resource.ResourceId,
+            Name = resource.Name,
+            WorkloadEnvironmentRegionId = resource.WorkloadEnvironmentRegionId,
+            ResourceTypeId = resource.ResourceTypeId,
+            Status = resource.Status,
+            ResourceType = resource.ResourceType != null ? new ResourceTypeDto
+            {
+                TypeId = resource.ResourceType.TypeId,
+                Name = resource.ResourceType.Name,
+                AzureResourceType = resource.ResourceType.AzureResourceType,
+                CategoryId = resource.ResourceType.CategoryId,
+                Category = resource.ResourceType.Category != null ? new ResourceCategoryDto
+                {
+                    CategoryId = resource.ResourceType.Category.CategoryId,
+                    Name = resource.ResourceType.Category.Name
+                } : null
+            } : null,
+            WorkloadEnvironmentRegion = resource.WorkloadEnvironmentRegion != null ? new WorkloadEnvironmentRegionDto
+            {
+                WorkloadEnvironmentRegionId = resource.WorkloadEnvironmentRegion.WorkloadEnvironmentRegionId,
+                AzureSubscriptionId = resource.WorkloadEnvironmentRegion.AzureSubscriptionId,
+                ResourceGroupName = resource.WorkloadEnvironmentRegion.ResourceGroupName,
+                EnvironmentTypeId = resource.WorkloadEnvironmentRegion.EnvironmentTypeId,
+                RegionId = resource.WorkloadEnvironmentRegion.RegionId
+            } : null
+        };
+    }
+
+    // GET: api/Resources
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<ResourceDto>>> GetResources()
+    {
+        var resources = await IncludeRelatedEntities().ToListAsync();
+        var resourceDtos = resources.Select(MapToDto);
+        return Ok(resourceDtos);
     }
 
     // GET: api/Resources/5
     [HttpGet("{id}")]
-    public async Task<ActionResult<Resource>> GetResource(int id)
+    public async Task<ActionResult<ResourceDto>> GetResource(int id)
     {
-        var resource = await _context.Resources
-            .Include(r => r.WorkloadEnvironmentRegion)
-            .Include(r => r.ResourceType)
-            .FirstOrDefaultAsync(r => r.ResourceId == id);
+        var resource = await IncludeRelatedEntities().FirstOrDefaultAsync(r => r.ResourceId == id);
 
         if (resource == null)
         {
             return NotFound();
         }
 
-        return resource;
+        return Ok(MapToDto(resource));
+    }
+
+    // GET: api/Resources/landing-zone/{landingZoneId}
+    [HttpGet("landing-zone/{landingZoneId}")]
+    public async Task<ActionResult<IEnumerable<ResourceDto>>> GetResourcesForLandingZone(int landingZoneId)
+    {
+        var resources = await IncludeRelatedEntities()
+            .Where(r => r.WorkloadEnvironmentRegionId == landingZoneId)
+            .ToListAsync();
+
+        if (!resources.Any())
+        {
+            return Ok(new List<ResourceDto>()); // Return an empty list with a 200 status code
+        }
+
+        var resourceDtos = resources.Select(MapToDto);
+        return Ok(resourceDtos);
     }
 
     // POST: api/Resources
@@ -118,6 +172,11 @@ public class ResourcesController : ControllerBase
         {
             Console.WriteLine($"ResourcesController: ResourceType with ID {resource.ResourceTypeId} not found.");
             return BadRequest(new { error = $"ResourceType with ID {resource.ResourceTypeId} not found." });
+        }
+
+        if (resource.ResourceType?.Category == null)
+        {
+            return NotFound(new { error = "ResourceType or its Category not found." });
         }
 
         var validStatuses = new[] { "Available", "Unavailable", "InProgress" }; // Example statuses
