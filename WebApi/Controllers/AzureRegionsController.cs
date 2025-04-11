@@ -36,6 +36,12 @@ public class AzureRegionsController : ControllerBase
     public async Task<ActionResult<IEnumerable<AzureRegionDto>>> GetAzureRegions()
     {
         var azureRegions = await IncludeRelatedEntities().ToListAsync();
+
+        if (!azureRegions.Any())
+        {
+            return Ok(new List<AzureRegionDto>()); // Return an empty list with a 200 status code
+        }
+
         var azureRegionDtos = azureRegions.Select(MapToDto);
         return Ok(azureRegionDtos);
     }

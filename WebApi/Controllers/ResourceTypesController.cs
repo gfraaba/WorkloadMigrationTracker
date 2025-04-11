@@ -42,6 +42,12 @@ public class ResourceTypesController : ControllerBase
     public async Task<ActionResult<IEnumerable<ResourceTypeDto>>> GetResourceTypes()
     {
         var resourceTypes = await IncludeRelatedEntities().ToListAsync();
+
+        if (!resourceTypes.Any())
+        {
+            return Ok(new List<ResourceTypeDto>()); // Return an empty list with a 200 status code
+        }
+
         var resourceTypeDtos = resourceTypes.Select(MapToDto);
         return Ok(resourceTypeDtos);
     }

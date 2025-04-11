@@ -6,7 +6,11 @@
 
 <h3>Workloads</h3>
 
-<table class="table">
+<button class="btn btn-primary mb-3" @onclick="NavigateToCreateWorkload">
+    Add Workload
+</button>
+
+<table class="table table-striped">
     <thead>
         <tr>
             <th>Name</th>
@@ -28,45 +32,78 @@
                         </button>
                         @if (expandedWorkloadId == workload.WorkloadId)
                         {
-                            <ul>
-                                @foreach (var landingZone in workload.WorkloadEnvironmentRegions)
-                                {
-                                    <li>
-                                        @landingZone.EnvironmentTypeName - @landingZone.RegionName
-                                        <button class="btn btn-sm btn-primary" @onclick="() => ToggleResources(landingZone.WorkloadEnvironmentRegionId)">
-                                            @((expandedLandingZoneId == landingZone.WorkloadEnvironmentRegionId) ? "Hide Resources" : "View Resources")
-                                        </button>
-                                        @if (expandedLandingZoneId == landingZone.WorkloadEnvironmentRegionId)
-                                        {
-                                            <ul>
-                                                @if (resources == null)
+                            <table class="table table-bordered mt-2">
+                                <thead>
+                                    <tr>
+                                        <th>Environment</th>
+                                        <th>Region</th>
+                                        <th>Resources</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var landingZone in workload.WorkloadEnvironmentRegions)
+                                    {
+                                        <tr>
+                                            <td>@landingZone.EnvironmentTypeName</td>
+                                            <td>@landingZone.RegionName</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-primary" @onclick="() => ToggleResources(landingZone.WorkloadEnvironmentRegionId)">
+                                                    @((expandedLandingZoneId == landingZone.WorkloadEnvironmentRegionId) ? "Hide Resources" : "View Resources")
+                                                </button>
+                                                @if (expandedLandingZoneId == landingZone.WorkloadEnvironmentRegionId)
                                                 {
-                                                    <li>Loading...</li>
+                                                    <table class="table table-sm mt-2">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Name</th>
+                                                                <th>Type</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @if (resources == null)
+                                                            {
+                                                                <tr><td colspan="2">Loading...</td></tr>
+                                                            }
+                                                            else if (!resources.Any())
+                                                            {
+                                                                <tr><td colspan="2">No resources found.</td></tr>
+                                                            }
+                                                            else
+                                                            {
+                                                                @foreach (var resource in resources)
+                                                                {
+                                                                    <tr>
+                                                                        <td>@resource.Name</td>
+                                                                        <td>@resource.ResourceType.Name</td>
+                                                                    </tr>
+                                                                }
+                                                            }
+                                                        </tbody>
+                                                    </table>
+                                                    <button class="btn btn-sm btn-success mt-2" @onclick="() => NavigateToAddResource(landingZone.WorkloadEnvironmentRegionId)">
+                                                        Add Resource
+                                                    </button>
                                                 }
-                                                else if (!resources.Any())
-                                                {
-                                                    <li>No resources found.</li>
-                                                }
-                                                else
-                                                {
-                                                    @foreach (var resource in resources)
-                                                    {
-                                                        <li>@resource.Name (@resource.ResourceType.Name)</li>
-                                                    }
-                                                }
-                                            </ul>
-                                        }
-                                    </li>
-                                }
-                            </ul>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
                         }
                     }
-                    else
+                    @* else
                     {
                         <button class="btn btn-sm btn-success" @onclick="() => NavigateToAddLandingZone(workload.WorkloadId)">
                             Add Landing Zone
                         </button>
-                    }
+                    } *@
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3">
+                    <button class="btn btn-sm btn-success mt-2" @onclick="() => NavigateToAddLandingZone(workload.WorkloadId)">
+                        Add Landing Zone
+                    </button>
                 </td>
             </tr>
         }
@@ -112,5 +149,15 @@
     private void NavigateToAddLandingZone(int workloadId)
     {
         Navigation.NavigateTo($"/add-landing-zone/{workloadId}");
+    }
+
+    private void NavigateToAddWorkload()
+    {
+        Navigation.NavigateTo("/add-workload");
+    }
+
+    private void NavigateToCreateWorkload()
+    {
+        Navigation.NavigateTo("/workloads/create");
     }
 }

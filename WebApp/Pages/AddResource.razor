@@ -28,29 +28,10 @@
         </select>
     </div>
     <div class="mb-3">
-        <label for="environment" class="form-label">Environment</label>
-        <select id="environment" class="form-control" @bind="selectedEnvironment">
-            <option value="" disabled>Select Environment</option>
-            @foreach (var env in environments)
-            {
-                <option value="@env.EnvironmentTypeId">@env.Name</option>
-            }
-        </select>
-    </div>
-    <div class="mb-3">
-        <label for="region" class="form-label">Region</label>
-        <select id="region" class="form-control" @bind="selectedRegion">
-            <option value="" disabled>Select Region</option>
-            @foreach (var region in regions)
-            {
-                <option value="@region.RegionId">@region.Name</option>
-            }
-        </select>
-    </div>
-    <div class="mb-3">
         <label for="status" class="form-label">Status</label>
         <select id="status" class="form-control" @bind="newResource.Status">
             <option value="" disabled>Select Status</option>
+            <option value="Unavailable" selected>Unavailable</option>
             @foreach (var status in statuses)
             {
                 <option value="@status.Name">@status.Name</option>
@@ -69,20 +50,14 @@
     {
         Name = string.Empty,
         ResourceTypeId = 0,
-        Status = string.Empty,
+        Status = "Unavailable",
         WorkloadEnvironmentRegionId = 0
     };
 
-    private List<EnvironmentTypeDto> environments = new();
-    private List<AzureRegionDto> regions = new();
     private List<ResourceTypeDto> resourceTypes = new();
-    private int? selectedEnvironment;
-    private int? selectedRegion;
 
     protected override async Task OnInitializedAsync()
     {
-        environments = await WorkloadService.GetEnvironmentsAsync();
-        regions = await WorkloadService.GetRegionsAsync();
         resourceTypes = await WorkloadService.GetResourceTypesAsync();
         statuses = await WorkloadService.GetStatusesAsync();
         newResource.WorkloadEnvironmentRegionId = workloadEnvironmentRegionId;
@@ -103,7 +78,7 @@
         newResource.WorkloadEnvironmentRegionId = workloadEnvironmentRegionId;
 
         Console.WriteLine($"Submitting Resource: Name={newResource.Name}, ResourceTypeId={newResource.ResourceTypeId}, Status={newResource.Status}, WorkloadEnvironmentRegionId={newResource.WorkloadEnvironmentRegionId}");
-        await WorkloadService.AddResourceToWorkloadAsync(workloadEnvironmentRegionId, newResource);
+        await WorkloadService.AddResourceAsync(newResource);
         Navigation.NavigateTo($"/workloads");
     }
 

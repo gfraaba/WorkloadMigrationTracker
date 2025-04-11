@@ -34,6 +34,12 @@ public class ResourceStatusesController : ControllerBase
     public async Task<ActionResult<IEnumerable<ResourceStatusDto>>> GetResourceStatuses()
     {
         var resourceStatuses = await IncludeRelatedEntities().ToListAsync();
+
+        if (!resourceStatuses.Any())
+        {
+            return Ok(new List<ResourceStatusDto>()); // Return an empty list with a 200 status code
+        }
+
         var resourceStatusDtos = resourceStatuses.Select(MapToDto);
         return Ok(resourceStatusDtos);
     }

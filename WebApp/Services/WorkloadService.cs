@@ -72,6 +72,23 @@ public class WorkloadService
         }
     }
 
+    public async Task AddResourceAsync(ResourceDto resource)
+    {
+        Console.WriteLine($"WorkloadService: Adding resource to LZ Id {resource.WorkloadEnvironmentRegionId}.");
+        Console.WriteLine($"Payload: {System.Text.Json.JsonSerializer.Serialize(resource)}");
+        try
+        {
+            var response = await _httpClient.PostAsJsonAsync("api/resources", resource);
+            response.EnsureSuccessStatusCode();
+            Console.WriteLine("WorkloadService: Resource added successfully.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"WorkloadService: Error adding resource - {ex.Message}");
+            throw;
+        }
+    }
+
     public async Task<List<EnvironmentTypeDto>> GetEnvironmentsAsync()
     {
         Console.WriteLine("WorkloadService: Fetching environments from API.");

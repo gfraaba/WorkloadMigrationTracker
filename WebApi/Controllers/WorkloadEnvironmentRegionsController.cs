@@ -95,7 +95,7 @@ public class WorkloadEnvironmentRegionsController : ControllerBase
 
         if (!landingZones.Any())
         {
-            return NotFound($"No landing zones found for workload with ID {workloadId}.");
+            return Ok(new List<WorkloadEnvironmentRegionDto>()); // Return an empty list with a 200 status code
         }
 
         var landingZoneDtos = landingZones.Select(MapToDto);
