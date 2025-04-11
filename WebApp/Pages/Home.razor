@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using Shared.Models
+@using Shared.DTOs
 @using WebApp.Services
 
 @inject WorkloadService WorkloadService
@@ -29,7 +30,7 @@ else
 }
 
 @code {
-    private List<Workload>? workloads;
+    private List<WorkloadDto>? workloads;
     private string? errorMessage;
 
     protected override async Task OnInitializedAsync()

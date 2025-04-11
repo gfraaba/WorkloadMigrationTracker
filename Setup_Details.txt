@@ -68,6 +68,10 @@ which sqlcmd
     # /opt/mssql-tools18/bin/sqlcmd
 sqlcmd -S db -U sa -P "$DB_PASSWORD" -Q "SELECT @@SERVERNAME" -C -N
 
+dotnet clean WorkloadMigrationTracker.sln && dotnet build WorkloadMigrationTracker.sln
+    # /workspace 
+dotnet run --project /workspace/WebApi/WebApi.csproj
+dotnet run --project /workspace/WebApp/WebApp.csproj    
 dotnet clean
 dotnet build
 dotnet run

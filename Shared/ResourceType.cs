@@ -8,7 +8,8 @@ public class ResourceType
     public required string Name { get; set; }
     public required string AzureResourceType { get; set; }
     public int CategoryId { get; set; }
-    public ResourceCategory Category { get; set; } = null!;
+    public ResourceCategory? Category { get; set; }
+    [JsonIgnore] 
     public ICollection<Resource> Resources { get; set; } = new List<Resource>();
 }
 

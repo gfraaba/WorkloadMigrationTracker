@@ -66,18 +66,8 @@ public class AppDbContext : DbContext
 
             entity.HasOne(r => r.ResourceType)
                   .WithMany(s => s.Resources)
-                  .HasForeignKey(r => r.TypeId) // Updated from ResourceTypeId to TypeId
+                  .HasForeignKey(r => r.ResourceTypeId) // Updated from ResourceTypeId to TypeId
                   .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete
-
-            entity.HasOne(r => r.Status)
-                  .WithMany(s => s.Resources)
-                  .HasForeignKey(r => r.StatusId)
-                  .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete
-
-            entity.HasOne(r => r.Workload)
-                .WithMany(w => w.Resources)
-                .HasForeignKey(r => r.WorkloadId)
-                .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete
         });
 
         modelBuilder.Entity<WorkloadEnvironmentRegion>(entity =>

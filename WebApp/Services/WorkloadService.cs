@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
-using Shared.Models; // Updated namespace for Workload model
+using Shared.Models;
+using Shared.DTOs;
 
 namespace WebApp.Services;
 
@@ -11,15 +12,19 @@ public class WorkloadService
     {
         _httpClient = httpClient;
     }
-
-    public async Task<List<Workload>> GetWorkloadsAsync()
+    
+    public async Task<List<WorkloadDto>> GetWorkloadsAsync()
     {
         Console.WriteLine("WorkloadService: Fetching workloads from API.");
         try
         {
-            var workloads = await _httpClient.GetFromJsonAsync<List<Workload>>("api/workloads"); // Added 'api/' prefix to match the WorkloadsController route
+            var workloads = await _httpClient.GetFromJsonAsync<List<WorkloadDto>>("api/workloads") ?? new List<WorkloadDto>();
             Console.WriteLine("WorkloadService: Workloads fetched successfully.");
-            return workloads ?? new List<Workload>();
+            foreach (var workload in workloads)
+            {
+                Console.WriteLine($"WorkloadService: WorkloadId={workload.WorkloadId}, Name={workload.Name}, LandingZonesCount={workload.LandingZonesCount}");
+            }
+            return workloads ?? new List<WorkloadDto>();
         }
         catch (Exception ex)
         {
@@ -51,13 +56,13 @@ public class WorkloadService
         response.EnsureSuccessStatusCode();
     }
 
-    public async Task AddResourceToWorkloadAsync(int workloadId, Resource resource)
+    public async Task AddResourceToWorkloadAsync(int workloadEnvironmentRegionId, Resource resource)
     {
-        Console.WriteLine($"WorkloadService: Adding resource to workload {workloadId}.");
+        Console.WriteLine($"WorkloadService: Adding resource to LZ Id {workloadEnvironmentRegionId}.");
         Console.WriteLine($"Payload: {System.Text.Json.JsonSerializer.Serialize(resource)}");
         try
         {
-            var response = await _httpClient.PostAsJsonAsync($"api/resources/add-to-workload/{workloadId}", resource); // Added 'api/' prefix to match the ResourcesController route
+            var response = await _httpClient.PostAsJsonAsync($"api/resources/add-to-workload/{workloadEnvironmentRegionId}", resource); 
             response.EnsureSuccessStatusCode();
             Console.WriteLine("WorkloadService: Resource added successfully.");
         }
@@ -90,6 +95,12 @@ public class WorkloadService
     {
         Console.WriteLine($"WorkloadService: Fetching landing zones for workload {workloadId}.");
         return await _httpClient.GetFromJsonAsync<List<WorkloadEnvironmentRegion>>($"api/workloadenvironmentregions/workload/{workloadId}") ?? new List<WorkloadEnvironmentRegion>();
+    }
+
+    public async Task<List<ResourceStatus>> GetStatusesAsync()
+    {
+        Console.WriteLine("WorkloadService: Fetching statuses from API.");
+        return await _httpClient.GetFromJsonAsync<List<ResourceStatus>>("api/resourcestatuses") ?? new List<ResourceStatus>();
     }
 
     public async Task AddLandingZoneAsync(WorkloadEnvironmentRegion landingZone)

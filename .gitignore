@@ -23,3 +23,6 @@ obj/
 
 # Ignore Blazor WebAssembly build artifacts
 **/wwwroot/**
+
+# Ignore Entity Framework Core migration files
+**/Migrations/*.cs

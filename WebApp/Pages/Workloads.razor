@@ -1,5 +1,5 @@
 @page "/workloads"
-@using Shared.Models
+@using Shared.DTOs
 @using WebApp.Services
 @inject WorkloadService WorkloadService
 @inject NavigationManager Navigation
@@ -24,15 +24,15 @@
                     @if (workload.LandingZonesCount > 0)
                     {
                         <button class="btn btn-link" @onclick="() => ToggleLandingZones(workload.WorkloadId)">
-                            View Landing Zones
+                            @((expandedWorkloadId == workload.WorkloadId) ? "Hide Landing Zones" : "View Landing Zones")
                         </button>
                         @if (expandedWorkloadId == workload.WorkloadId)
                         {
                             <ul>
-                                @foreach (var landingZone in landingZones)
+                                @foreach (var landingZone in workload.WorkloadEnvironmentRegions)
                                 {
                                     <li>
-                                        @landingZone.EnvironmentType.Name - @landingZone.Region.Name
+                                        @landingZone.EnvironmentTypeName - @landingZone.RegionName
                                         <button class="btn btn-sm btn-primary" @onclick="() => NavigateToAddResource(landingZone.WorkloadEnvironmentRegionId)">
                                             Add Resource
                                         </button>
@@ -54,27 +54,17 @@
 </table>
 
 @code {
-    private List<Workload> workloads = new();
-    private List<WorkloadEnvironmentRegion> landingZones = new();
-    private int? expandedWorkloadId;
+    private List<WorkloadDto> workloads = new();
+    private int? expandedWorkloadId = null;
+
+    private void ToggleLandingZones(int workloadId)
+    {
+        expandedWorkloadId = expandedWorkloadId == workloadId ? null : workloadId;
+    }
 
     protected override async Task OnInitializedAsync()
     {
         workloads = await WorkloadService.GetWorkloadsAsync();
-    }
-
-    private async Task ToggleLandingZones(int workloadId)
-    {
-        if (expandedWorkloadId == workloadId)
-        {
-            expandedWorkloadId = null;
-            landingZones.Clear();
-        }
-        else
-        {
-            expandedWorkloadId = workloadId;
-            landingZones = await WorkloadService.GetLandingZonesForWorkloadAsync(workloadId);
-        }
     }
 
     private void NavigateToAddResource(int workloadEnvironmentRegionId)

@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Shared.Models;
 
 public class Resource
@@ -6,14 +8,13 @@ public class Resource
     public required string Name { get; set; }
     
     // Foreign Keys
-    public int WorkloadId { get; set; }
     public int WorkloadEnvironmentRegionId { get; set; }
-    public int TypeId { get; set; } // Renamed from ResourceTypeId to TypeId
-    public int StatusId { get; set; }
+    public int ResourceTypeId { get; set; }
+    public required string Status { get; set; }
     
     // Navigation Properties
-    public required Workload Workload { get; set; }
-    public required WorkloadEnvironmentRegion WorkloadEnvironmentRegion { get; set; }
-    public required ResourceType ResourceType { get; set; }
-    public required ResourceStatus Status { get; set; }
+    [JsonIgnore]
+    public WorkloadEnvironmentRegion? WorkloadEnvironmentRegion { get; set; }
+    [JsonIgnore]
+    public ResourceType? ResourceType { get; set; }
 }

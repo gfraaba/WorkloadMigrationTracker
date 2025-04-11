@@ -20,10 +20,8 @@ public class ResourcesController : ControllerBase
     public async Task<ActionResult<IEnumerable<Resource>>> GetResources()
     {
         return await _context.Resources
-            .Include(r => r.Workload)
             .Include(r => r.WorkloadEnvironmentRegion)
             .Include(r => r.ResourceType)
-            .Include(r => r.Status)
             .ToListAsync();
     }
 
@@ -32,10 +30,8 @@ public class ResourcesController : ControllerBase
     public async Task<ActionResult<Resource>> GetResource(int id)
     {
         var resource = await _context.Resources
-            .Include(r => r.Workload)
             .Include(r => r.WorkloadEnvironmentRegion)
             .Include(r => r.ResourceType)
-            .Include(r => r.Status)
             .FirstOrDefaultAsync(r => r.ResourceId == id);
 
         if (resource == null)
@@ -102,37 +98,38 @@ public class ResourcesController : ControllerBase
         return NoContent();
     }
 
-    [HttpPost("add-to-workload/{workloadId}")]
-    public async Task<IActionResult> AddResourceToWorkload(int workloadId, [FromBody] Resource resource)
+    [HttpPost("add-to-workload/{workloadEnvironmentRegionId}")]
+    public async Task<IActionResult> AddResourceToWorkload(int workloadEnvironmentRegionId, [FromBody] Resource resource)
     {
-        Console.WriteLine($"ResourcesController: Received request to add resource to workload {workloadId}.");
-        Console.WriteLine($"Resource Details: Name={resource.Name}, TypeId={resource.TypeId}, StatusId={resource.StatusId}");
+        Console.WriteLine($"ResourcesController: Received request to add resource to LZ Id {workloadEnvironmentRegionId}.");
+        Console.WriteLine($"Resource Details: Name={resource.Name}, ResourceTypeId={resource.ResourceTypeId}, Status={resource.Status}");
 
         // Ensure WorkloadEnvironmentRegion exists
         var workloadEnvironmentRegion = await _context.WorkloadEnvironmentRegions
-            .FirstOrDefaultAsync(w => w.WorkloadId == workloadId &&
-                                     w.EnvironmentTypeId == resource.WorkloadEnvironmentRegion.EnvironmentType.EnvironmentTypeId &&
-                                     w.RegionId == resource.WorkloadEnvironmentRegion.Region.RegionId);
-
+            .FirstOrDefaultAsync(w => w.WorkloadEnvironmentRegionId == workloadEnvironmentRegionId);
         if (workloadEnvironmentRegion == null)
         {
-            workloadEnvironmentRegion = new WorkloadEnvironmentRegion
-            {
-                WorkloadId = workloadId,
-                EnvironmentTypeId = resource.WorkloadEnvironmentRegion.EnvironmentType.EnvironmentTypeId,
-                RegionId = resource.WorkloadEnvironmentRegion.Region.RegionId,
-                Workload = await _context.Workloads.FindAsync(workloadId), // Use existing Workload
-                EnvironmentType = await _context.EnvironmentTypes.FindAsync(resource.WorkloadEnvironmentRegion.EnvironmentType.EnvironmentTypeId), // Use existing EnvironmentType
-                Region = await _context.AzureRegions.FindAsync(resource.WorkloadEnvironmentRegion.Region.RegionId) // Use existing Region
-            };
-            _context.WorkloadEnvironmentRegions.Add(workloadEnvironmentRegion);
-            await _context.SaveChangesAsync();
+            Console.WriteLine($"ResourcesController: WorkloadEnvironmentRegion with ID {workloadEnvironmentRegionId} not found.");
+            return NotFound(new { error = $"WorkloadEnvironmentRegion with ID {workloadEnvironmentRegionId} not found." });
         }
 
-        resource.WorkloadEnvironmentRegionId = workloadEnvironmentRegion.WorkloadEnvironmentRegionId;
+        var resourceTypeExists = await _context.ResourceTypes.AnyAsync(rt => rt.TypeId == resource.ResourceTypeId);
+        if (!resourceTypeExists)
+        {
+            Console.WriteLine($"ResourcesController: ResourceType with ID {resource.ResourceTypeId} not found.");
+            return BadRequest(new { error = $"ResourceType with ID {resource.ResourceTypeId} not found." });
+        }
+
+        var validStatuses = new[] { "Available", "Unavailable", "InProgress" }; // Example statuses
+        if (!validStatuses.Contains(resource.Status))
+        {
+            Console.WriteLine($"ResourcesController: Invalid status '{resource.Status}'.");
+            return BadRequest(new { error = $"Invalid status '{resource.Status}'. Valid statuses are: {string.Join(", ", validStatuses)}." });
+        }
 
         try
         {
+            resource.WorkloadEnvironmentRegionId = workloadEnvironmentRegionId; // Ensure the foreign key is set
             _context.Resources.Add(resource);
             await _context.SaveChangesAsync();
             Console.WriteLine("ResourcesController: Resource added successfully.");

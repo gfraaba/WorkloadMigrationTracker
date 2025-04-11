@@ -2,7 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Data;
-using Shared.Models; // Updated namespace for Workload model
+using Shared.Models;
+using Shared.DTOs;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -16,12 +17,44 @@ public class WorkloadsController : ControllerBase
     }
 
     // GET: api/Workloads
+    // [HttpGet]
+    // public async Task<ActionResult<IEnumerable<Workload>>> GetWorkloads()
+    // {
+    //     return await _context.Workloads
+    //         .Include(w => w.WorkloadEnvironmentRegions) // Ensure related data is included
+    //         .ToListAsync();
+    // }
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Workload>>> GetWorkloads()
+    public async Task<ActionResult<IEnumerable<WorkloadDto>>> GetWorkloads()
     {
-        return await _context.Workloads
-            .Include(w => w.WorkloadEnvironmentRegions) // Ensure related data is included
+        var workloads = await _context.Workloads
+            .Include(w => w.WorkloadEnvironmentRegions)
+                .ThenInclude(wr => wr.EnvironmentType)
+            .Include(w => w.WorkloadEnvironmentRegions)
+                .ThenInclude(wr => wr.Region)
+            .Select(w => new WorkloadDto
+            {
+                WorkloadId = w.WorkloadId,
+                Name = w.Name,
+                Description = w.Description,
+                AzureNamePrefix = w.AzureNamePrefix,
+                PrimaryPOC = w.PrimaryPOC,
+                SecondaryPOC = w.SecondaryPOC,
+                LandingZonesCount = w.WorkloadEnvironmentRegions.Count,
+                WorkloadEnvironmentRegions = w.WorkloadEnvironmentRegions.Select(wr => new WorkloadEnvironmentRegionDto
+                {
+                    WorkloadEnvironmentRegionId = wr.WorkloadEnvironmentRegionId,
+                    AzureSubscriptionId = wr.AzureSubscriptionId,
+                    ResourceGroupName = wr.ResourceGroupName,
+                    EnvironmentTypeId = wr.EnvironmentTypeId,
+                    RegionId = wr.RegionId,
+                    EnvironmentTypeName = wr.EnvironmentType != null ? wr.EnvironmentType.Name : null,
+                    RegionName = wr.Region != null ? wr.Region.Name : null
+                }).ToList()
+            })
             .ToListAsync();
+
+        return Ok(workloads);
     }
 
     // GET: api/Workloads/5

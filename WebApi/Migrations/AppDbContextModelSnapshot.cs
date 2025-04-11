@@ -116,23 +116,27 @@ namespace WebApi.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("StatusId")
+                    b.Property<int?>("ResourceStatusStatusId")
                         .HasColumnType("int");
 
-                    b.Property<int>("TypeId")
+                    b.Property<int>("ResourceTypeId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("WorkloadEnvironmentRegionId")
                         .HasColumnType("int");
 
-                    b.Property<int>("WorkloadId")
+                    b.Property<int?>("WorkloadId")
                         .HasColumnType("int");
 
                     b.HasKey("ResourceId");
 
-                    b.HasIndex("StatusId");
+                    b.HasIndex("ResourceStatusStatusId");
 
-                    b.HasIndex("TypeId");
+                    b.HasIndex("ResourceTypeId");
 
                     b.HasIndex("WorkloadEnvironmentRegionId");
 
@@ -507,15 +511,13 @@ namespace WebApi.Migrations
 
             modelBuilder.Entity("Shared.Models.Resource", b =>
                 {
-                    b.HasOne("Shared.Models.ResourceStatus", "Status")
+                    b.HasOne("Shared.Models.ResourceStatus", null)
                         .WithMany("Resources")
-                        .HasForeignKey("StatusId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("ResourceStatusStatusId");
 
                     b.HasOne("Shared.Models.ResourceType", "ResourceType")
                         .WithMany("Resources")
-                        .HasForeignKey("TypeId")
+                        .HasForeignKey("ResourceTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -525,17 +527,11 @@ namespace WebApi.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Shared.Models.Workload", "Workload")
+                    b.HasOne("Shared.Models.Workload", null)
                         .WithMany("Resources")
-                        .HasForeignKey("WorkloadId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("WorkloadId");
 
                     b.Navigation("ResourceType");
-
-                    b.Navigation("Status");
-
-                    b.Navigation("Workload");
 
                     b.Navigation("WorkloadEnvironmentRegion");
                 });
