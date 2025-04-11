@@ -35,6 +35,13 @@ public class EnvironmentTypesController : ControllerBase
         return environmentType;
     }
 
+    // GET: api/EnvironmentTypes/environments
+    [HttpGet("environments")]
+    public async Task<ActionResult<IEnumerable<EnvironmentType>>> GetEnvironments()
+    {
+        return await _context.EnvironmentTypes.ToListAsync();
+    }
+
     // POST: api/EnvironmentTypes
     [HttpPost]
     public async Task<ActionResult<EnvironmentType>> PostEnvironmentType(EnvironmentType environmentType)

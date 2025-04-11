@@ -569,3 +569,5 @@ dotnet build /workspace/WebApp/WebApp.csproj
 
 
 #----------
+dotnet add /workspace/WebApp/WebApp.csproj package Microsoft.AspNetCore.Components.Forms
+#--------

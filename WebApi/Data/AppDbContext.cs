@@ -66,7 +66,7 @@ public class AppDbContext : DbContext
 
             entity.HasOne(r => r.ResourceType)
                   .WithMany(s => s.Resources)
-                  .HasForeignKey(r => r.ResourceTypeId)
+                  .HasForeignKey(r => r.TypeId) // Updated from ResourceTypeId to TypeId
                   .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete
 
             entity.HasOne(r => r.Status)

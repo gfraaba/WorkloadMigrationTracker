@@ -105,16 +105,44 @@ public class ResourcesController : ControllerBase
     [HttpPost("add-to-workload/{workloadId}")]
     public async Task<IActionResult> AddResourceToWorkload(int workloadId, [FromBody] Resource resource)
     {
-        var workload = await _context.Workloads.Include(w => w.Resources).FirstOrDefaultAsync(w => w.WorkloadId == workloadId);
-        if (workload == null)
+        Console.WriteLine($"ResourcesController: Received request to add resource to workload {workloadId}.");
+        Console.WriteLine($"Resource Details: Name={resource.Name}, TypeId={resource.TypeId}, StatusId={resource.StatusId}");
+
+        // Ensure WorkloadEnvironmentRegion exists
+        var workloadEnvironmentRegion = await _context.WorkloadEnvironmentRegions
+            .FirstOrDefaultAsync(w => w.WorkloadId == workloadId &&
+                                     w.EnvironmentTypeId == resource.WorkloadEnvironmentRegion.EnvironmentType.EnvironmentTypeId &&
+                                     w.RegionId == resource.WorkloadEnvironmentRegion.Region.RegionId);
+
+        if (workloadEnvironmentRegion == null)
         {
-            return NotFound($"Workload with ID {workloadId} not found.");
+            workloadEnvironmentRegion = new WorkloadEnvironmentRegion
+            {
+                WorkloadId = workloadId,
+                EnvironmentTypeId = resource.WorkloadEnvironmentRegion.EnvironmentType.EnvironmentTypeId,
+                RegionId = resource.WorkloadEnvironmentRegion.Region.RegionId,
+                Workload = await _context.Workloads.FindAsync(workloadId), // Use existing Workload
+                EnvironmentType = await _context.EnvironmentTypes.FindAsync(resource.WorkloadEnvironmentRegion.EnvironmentType.EnvironmentTypeId), // Use existing EnvironmentType
+                Region = await _context.AzureRegions.FindAsync(resource.WorkloadEnvironmentRegion.Region.RegionId) // Use existing Region
+            };
+            _context.WorkloadEnvironmentRegions.Add(workloadEnvironmentRegion);
+            await _context.SaveChangesAsync();
         }
 
-        workload.Resources.Add(resource);
-        await _context.SaveChangesAsync();
+        resource.WorkloadEnvironmentRegionId = workloadEnvironmentRegion.WorkloadEnvironmentRegionId;
 
-        return Ok(resource);
+        try
+        {
+            _context.Resources.Add(resource);
+            await _context.SaveChangesAsync();
+            Console.WriteLine("ResourcesController: Resource added successfully.");
+            return Ok(resource);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ResourcesController: Error adding resource - {ex.Message}");
+            return StatusCode(500, "An error occurred while adding the resource.");
+        }
     }
 
     private bool ResourceExists(int id)

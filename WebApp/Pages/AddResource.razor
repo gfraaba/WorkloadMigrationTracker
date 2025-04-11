@@ -1,6 +1,8 @@
 @page "/workloads/{workloadId:int}/add-resource"
 @using Shared.Models
 @using WebApp.Services
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components
 
 @inject WorkloadService WorkloadService
 @inject NavigationManager Navigation
@@ -17,7 +19,33 @@
     </div>
     <div class="mb-3">
         <label for="resourceType" class="form-label">Resource Type</label>
-        <InputText id="resourceType" class="form-control" @bind-Value="newResource.ResourceType.Name" />
+        <select id="resourceType" class="form-control" @bind="newResource.ResourceType.TypeId">
+            <option value="" disabled>Select Resource Type</option>
+            @foreach (var resourceType in resourceTypes)
+            {
+                <option value="@resourceType.TypeId">@resourceType.Name</option>
+            }
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="environment" class="form-label">Environment</label>
+        <select id="environment" class="form-control" @bind="selectedEnvironment">
+            <option value="" disabled>Select Environment</option>
+            @foreach (var env in environments)
+            {
+                <option value="@env.EnvironmentTypeId">@env.Name</option>
+            }
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="region" class="form-label">Region</label>
+        <select id="region" class="form-control" @bind="selectedRegion">
+            <option value="" disabled>Select Region</option>
+            @foreach (var region in regions)
+            {
+                <option value="@region.RegionId">@region.Name</option>
+            }
+        </select>
     </div>
 
     <button type="submit" class="btn btn-primary">Add Resource</button>
@@ -28,7 +56,7 @@
     [Parameter] public int WorkloadId { get; set; }
     private Resource newResource = new Resource
     {
-        Name = "",
+        Name = string.Empty, // Explicitly initializing Name to an empty string
         Workload = new Workload
         {
             Name = "",
@@ -62,8 +90,32 @@
         }
     };
 
+    private List<EnvironmentType> environments = new();
+    private List<AzureRegion> regions = new();
+    private List<ResourceType> resourceTypes = new();
+    private int? selectedEnvironment;
+    private int? selectedRegion;
+
+    protected override async Task OnInitializedAsync()
+    {
+        environments = await WorkloadService.GetEnvironmentsAsync();
+        regions = await WorkloadService.GetRegionsAsync();
+        resourceTypes = await WorkloadService.GetResourceTypesAsync();
+    }
+
     private async Task HandleValidSubmit()
     {
+        // Map selected values to newResource properties
+        newResource.WorkloadId = WorkloadId;
+        newResource.WorkloadEnvironmentRegion.EnvironmentType.EnvironmentTypeId = selectedEnvironment ?? 0;
+        newResource.WorkloadEnvironmentRegion.Region.RegionId = selectedRegion ?? 0;
+        newResource.TypeId = newResource.ResourceType.TypeId;
+        newResource.StatusId = newResource.Status.StatusId;
+
+        // Ensure WorkloadEnvironmentRegionId is set
+        newResource.WorkloadEnvironmentRegionId = newResource.WorkloadEnvironmentRegion.WorkloadEnvironmentRegionId;
+
+        Console.WriteLine($"Submitting Resource: Name={newResource.Name}, TypeId={newResource.TypeId}, StatusId={newResource.StatusId}, WorkloadId={newResource.WorkloadId}, WorkloadEnvironmentRegionId={newResource.WorkloadEnvironmentRegionId}");
         await WorkloadService.AddResourceToWorkloadAsync(WorkloadId, newResource);
         Navigation.NavigateTo($"/workloads");
     }

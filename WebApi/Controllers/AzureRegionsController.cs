@@ -35,6 +35,13 @@ public class AzureRegionsController : ControllerBase
         return azureRegion;
     }
 
+    // GET: api/AzureRegions/regions
+    [HttpGet("regions")]
+    public async Task<ActionResult<IEnumerable<AzureRegion>>> GetRegions()
+    {
+        return await _context.AzureRegions.ToListAsync();
+    }
+
     // POST: api/AzureRegions
     [HttpPost]
     public async Task<ActionResult<AzureRegion>> PostAzureRegion(AzureRegion azureRegion)

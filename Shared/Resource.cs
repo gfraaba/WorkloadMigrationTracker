@@ -8,7 +8,7 @@ public class Resource
     // Foreign Keys
     public int WorkloadId { get; set; }
     public int WorkloadEnvironmentRegionId { get; set; }
-    public int ResourceTypeId { get; set; }
+    public int TypeId { get; set; } // Renamed from ResourceTypeId to TypeId
     public int StatusId { get; set; }
     
     // Navigation Properties
