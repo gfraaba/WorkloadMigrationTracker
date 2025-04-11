@@ -12,8 +12,8 @@ public class WorkloadEnvironmentRegion
     public int RegionId { get; set; }
     
     // Navigation Properties
-    public required Workload Workload { get; set; }
-    public required EnvironmentType EnvironmentType { get; set; }
-    public required AzureRegion Region { get; set; }
+    public Workload? Workload { get; set; }
+    public EnvironmentType? EnvironmentType { get; set; }
+    public AzureRegion? Region { get; set; }
     public ICollection<Resource> Resources { get; set; } = new List<Resource>();
 }

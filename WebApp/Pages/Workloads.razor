@@ -1,81 +1,89 @@
 @page "/workloads"
 @using Shared.Models
 @using WebApp.Services
-
 @inject WorkloadService WorkloadService
 @inject NavigationManager Navigation
 
 <h3>Workloads</h3>
 
-@if (workloads == null)
-{
-    <p>Loading...</p>
-}
-else if (!workloads.Any())
-{
-    <p>No workloads found. <a @onclick="NavigateToCreate">Create a new workload</a></p>
-}
-else
-{
-    <table class="table">
-        <thead>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Landing Zones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var workload in workloads)
+        {
             <tr>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Azure Name Prefix</th>
-                <th>Primary POC</th>
-                <th>Secondary POC</th>
-                <th>Actions</th>
+                <td>@workload.Name</td>
+                <td>@workload.Description</td>
+                <td>
+                    @if (workload.LandingZonesCount > 0)
+                    {
+                        <button class="btn btn-link" @onclick="() => ToggleLandingZones(workload.WorkloadId)">
+                            View Landing Zones
+                        </button>
+                        @if (expandedWorkloadId == workload.WorkloadId)
+                        {
+                            <ul>
+                                @foreach (var landingZone in landingZones)
+                                {
+                                    <li>
+                                        @landingZone.EnvironmentType.Name - @landingZone.Region.Name
+                                        <button class="btn btn-sm btn-primary" @onclick="() => NavigateToAddResource(landingZone.WorkloadEnvironmentRegionId)">
+                                            Add Resource
+                                        </button>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    }
+                    else
+                    {
+                        <button class="btn btn-sm btn-success" @onclick="() => NavigateToAddLandingZone(workload.WorkloadId)">
+                            Add Landing Zone
+                        </button>
+                    }
+                </td>
             </tr>
-        </thead>
-        <tbody>
-            @foreach (var workload in workloads)
-            {
-                <tr>
-                    <td>@workload.Name</td>
-                    <td>@workload.Description</td>
-                    <td>@workload.AzureNamePrefix</td>
-                    <td>@workload.PrimaryPOC</td>
-                    <td>@workload.SecondaryPOC</td>
-                    <td>
-                        <button class="btn btn-primary" @onclick="() => NavigateToEdit(workload.WorkloadId)">Edit</button>
-                        <button class="btn btn-danger" @onclick="() => DeleteWorkload(workload.WorkloadId)">Delete</button>
-                        <button class="btn btn-info" @onclick="() => NavigateToAddResource(workload.WorkloadId)">Add Resource</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
-
-<button class="btn btn-success" @onclick="NavigateToCreate">Create New Workload</button>
+        }
+    </tbody>
+</table>
 
 @code {
-    private List<Workload>? workloads;
+    private List<Workload> workloads = new();
+    private List<WorkloadEnvironmentRegion> landingZones = new();
+    private int? expandedWorkloadId;
 
     protected override async Task OnInitializedAsync()
     {
         workloads = await WorkloadService.GetWorkloadsAsync();
     }
 
-    private void NavigateToCreate()
+    private async Task ToggleLandingZones(int workloadId)
     {
-        Navigation.NavigateTo("/workloads/create");
+        if (expandedWorkloadId == workloadId)
+        {
+            expandedWorkloadId = null;
+            landingZones.Clear();
+        }
+        else
+        {
+            expandedWorkloadId = workloadId;
+            landingZones = await WorkloadService.GetLandingZonesForWorkloadAsync(workloadId);
+        }
     }
 
-    private void NavigateToEdit(int workloadId)
+    private void NavigateToAddResource(int workloadEnvironmentRegionId)
     {
-        Navigation.NavigateTo($"/workloads/edit/{workloadId}");
+        Navigation.NavigateTo($"/add-resource/{workloadEnvironmentRegionId}");
     }
 
-    private async Task DeleteWorkload(int workloadId)
+    private void NavigateToAddLandingZone(int workloadId)
     {
-        await WorkloadService.DeleteWorkloadAsync(workloadId);
-        workloads = await WorkloadService.GetWorkloadsAsync();
-    }
-
-    private void NavigateToAddResource(int workloadId)
-    {
-        Navigation.NavigateTo($"/workloads/{workloadId}/add-resource");
+        Navigation.NavigateTo($"/add-landing-zone/{workloadId}");
     }
 }

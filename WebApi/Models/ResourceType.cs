@@ -1,1 +1,0 @@
-// This file is no longer needed as ResourceType is now used from Shared.Models.

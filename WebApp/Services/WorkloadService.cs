@@ -85,4 +85,18 @@ public class WorkloadService
         Console.WriteLine("WorkloadService: Fetching resource types from API.");
         return await _httpClient.GetFromJsonAsync<List<ResourceType>>("api/resourcetypes") ?? new List<ResourceType>(); // Added 'api/' prefix to match the ResourceTypesController route
     }
+
+    public async Task<List<WorkloadEnvironmentRegion>> GetLandingZonesForWorkloadAsync(int workloadId)
+    {
+        Console.WriteLine($"WorkloadService: Fetching landing zones for workload {workloadId}.");
+        return await _httpClient.GetFromJsonAsync<List<WorkloadEnvironmentRegion>>($"api/workloadenvironmentregions/workload/{workloadId}") ?? new List<WorkloadEnvironmentRegion>();
+    }
+
+    public async Task AddLandingZoneAsync(WorkloadEnvironmentRegion landingZone)
+    {
+        Console.WriteLine("WorkloadService: Adding a new landing zone.");
+        var response = await _httpClient.PostAsJsonAsync("api/workloadenvironmentregions", landingZone);
+        response.EnsureSuccessStatusCode();
+        Console.WriteLine("WorkloadService: Landing zone added successfully.");
+    }
 }

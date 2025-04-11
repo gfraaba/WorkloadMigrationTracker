@@ -15,4 +15,6 @@ public class Workload
     public ICollection<Resource> Resources { get; set; } = new List<Resource>();
     [JsonIgnore] // Prevent circular reference
     public ICollection<WorkloadEnvironmentRegion> WorkloadEnvironmentRegions { get; set; } = new List<WorkloadEnvironmentRegion>();
+
+    public int LandingZonesCount => WorkloadEnvironmentRegions?.Count ?? 0;
 }

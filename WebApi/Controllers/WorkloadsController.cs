@@ -19,7 +19,9 @@ public class WorkloadsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Workload>>> GetWorkloads()
     {
-        return await _context.Workloads.ToListAsync();
+        return await _context.Workloads
+            .Include(w => w.WorkloadEnvironmentRegions) // Ensure related data is included
+            .ToListAsync();
     }
 
     // GET: api/Workloads/5

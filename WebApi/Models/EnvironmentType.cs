@@ -1,1 +1,0 @@
-// This file is no longer needed as EnvironmentType is now used from Shared.Models.

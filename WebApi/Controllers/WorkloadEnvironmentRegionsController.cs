@@ -43,13 +43,42 @@ public class WorkloadEnvironmentRegionsController : ControllerBase
         return workloadEnvironmentRegion;
     }
 
+    // GET: api/WorkloadEnvironmentRegions/workload/{workloadId}
+    [HttpGet("workload/{workloadId}")]
+    public async Task<ActionResult<IEnumerable<WorkloadEnvironmentRegion>>> GetLandingZonesForWorkload(int workloadId)
+    {
+        var landingZones = await _context.WorkloadEnvironmentRegions
+            .Include(w => w.EnvironmentType)
+            .Include(w => w.Region)
+            .Where(w => w.WorkloadId == workloadId)
+            .ToListAsync();
+
+        if (!landingZones.Any())
+        {
+            return NotFound($"No landing zones found for workload with ID {workloadId}.");
+        }
+
+        return Ok(landingZones);
+    }
+
     // POST: api/WorkloadEnvironmentRegions
     [HttpPost]
     public async Task<ActionResult<WorkloadEnvironmentRegion>> PostWorkloadEnvironmentRegion(WorkloadEnvironmentRegion workloadEnvironmentRegion)
     {
+        // Ignore navigation properties during validation
+        ModelState.Remove(nameof(WorkloadEnvironmentRegion.Workload));
+        ModelState.Remove(nameof(WorkloadEnvironmentRegion.EnvironmentType));
+        ModelState.Remove(nameof(WorkloadEnvironmentRegion.Region));
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
         _context.WorkloadEnvironmentRegions.Add(workloadEnvironmentRegion);
         await _context.SaveChangesAsync();
 
+        Console.WriteLine("Landing zone added successfully.");
         return CreatedAtAction(nameof(GetWorkloadEnvironmentRegion), new { id = workloadEnvironmentRegion.WorkloadEnvironmentRegionId }, workloadEnvironmentRegion);
     }
 
