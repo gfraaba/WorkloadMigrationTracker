@@ -1,14 +1,20 @@
 using System.Reflection;
 using WebApi.Data;
+using WebApi.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using System.Text.RegularExpressions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    connectionString = Utils.ReplaceEnvironmentVariables(connectionString);
+    // Log the connection string (remove sensitive info in production)
+    Console.WriteLine($"Using connection string: {Regex.Replace(connectionString, "Password=[^;]*", "Password=***")}");
+    options.UseSqlServer(connectionString);
     options.EnableSensitiveDataLogging(); // Enable detailed SQL query logging
     options.LogTo(Console.WriteLine); // Log SQL queries to the console
 });

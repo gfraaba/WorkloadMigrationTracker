@@ -1,10 +1,10 @@
 services:
-  dev:
+  api:
     build:
       context: ..
-      dockerfile: .devcontainer/dev.Dockerfile
+      dockerfile: WebApi/api.Dockerfile
     platform: ${DOCKER_PLATFORM}
-    hostname: dev
+    hostname: api
     environment:
       DOTNET_CLI_TELEMETRY_OPTOUT: "true"
       DB_SERVER: ${DB_SERVER}
@@ -13,9 +13,10 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
     volumes:
       - ..:/workspace
+    ports:
+      - "8080:8080"
     stdin_open: true
     tty: true
-    command: sleep infinity
     depends_on:
       db:
         condition: service_healthy
@@ -27,7 +28,7 @@ services:
       args:
         PLATFORM: ${DOCKER_PLATFORM} # The 'platform' directive in docker-compose.yml alone is insufficient for the base image: mcr.microsoft.com/mssql/server:2022-CU18-ubuntu-22.04.
     platform: ${DOCKER_PLATFORM}
-    hostname: ${DB_SERVER} # ← This is your server name, otherwise docker container ID will be used!
+    hostname: db # ← This is your server name, otherwise docker container ID will be used!
     environment:
       SA_PASSWORD: ${DB_PASSWORD}
       ACCEPT_EULA: "Y"
