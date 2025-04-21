@@ -22,7 +22,10 @@ public class WorkloadsController : ControllerBase
             .Include(w => w.WorkloadEnvironmentRegions)
                 .ThenInclude(wr => wr.EnvironmentType)
             .Include(w => w.WorkloadEnvironmentRegions)
-                .ThenInclude(wr => wr.Region);
+                .ThenInclude(wr => wr.Region)
+            .Include(w => w.WorkloadEnvironmentRegions)
+                .ThenInclude(wr => wr.Resources)
+                    .ThenInclude(r => r.ResourceType);
     }
 
     private WorkloadDto MapToDto(Workload workload)
@@ -36,15 +39,37 @@ public class WorkloadsController : ControllerBase
             PrimaryPOC = workload.PrimaryPOC,
             SecondaryPOC = workload.SecondaryPOC,
             LandingZonesCount = workload.WorkloadEnvironmentRegions.Count,
+            ResourcesCount = workload.WorkloadEnvironmentRegions.Sum(wr => wr.Resources.Count),
             WorkloadEnvironmentRegions = workload.WorkloadEnvironmentRegions.Select(wr => new WorkloadEnvironmentRegionDto
             {
                 WorkloadEnvironmentRegionId = wr.WorkloadEnvironmentRegionId,
                 AzureSubscriptionId = wr.AzureSubscriptionId,
                 ResourceGroupName = wr.ResourceGroupName,
+                Name = wr.ResourceGroupName,
                 EnvironmentTypeId = wr.EnvironmentTypeId,
                 RegionId = wr.RegionId,
                 EnvironmentTypeName = wr.EnvironmentType?.Name ?? string.Empty,
-                RegionName = wr.Region?.Name ?? string.Empty
+                RegionName = wr.Region?.Name ?? string.Empty,
+                Resources = wr.Resources.Select(r => new ResourceDto
+                {
+                    ResourceId = r.ResourceId,
+                    Name = r.Name,
+                    WorkloadEnvironmentRegionId = r.WorkloadEnvironmentRegionId,
+                    ResourceTypeId = r.ResourceTypeId,
+                    Status = r.Status,
+                    ResourceType = r.ResourceType != null ? new ResourceTypeDto
+                    {
+                        TypeId = r.ResourceType.TypeId,
+                        Name = r.ResourceType.Name,
+                        AzureResourceType = r.ResourceType.AzureResourceType,
+                        CategoryId = r.ResourceType.CategoryId,
+                        Category = r.ResourceType.Category != null ? new ResourceCategoryDto
+                        {
+                            CategoryId = r.ResourceType.Category.CategoryId,
+                            Name = r.ResourceType.Category.Name
+                        } : null
+                    } : null
+                }).ToList()
             }).ToList()
         };
     }

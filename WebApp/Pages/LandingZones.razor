@@ -1,0 +1,66 @@
+@page "/landing-zones/{workloadId:int}"
+@using Shared.DTOs
+@using WebApp.Services
+@inject WorkloadService WorkloadService
+@inject NavigationManager Navigation
+
+<h3>Landing Zones</h3>
+
+<button class="btn btn-primary mb-3" @onclick="NavigateToAddLandingZone">
+    Add Landing Zone
+</button>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Environment</th>
+            <th>Region</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var landingZone in landingZones)
+        {
+            <tr>
+                <td>@landingZone.Name</td>
+                <td>@landingZone.EnvironmentTypeName</td>
+                <td>@landingZone.RegionName</td>
+                <td>
+                    @* <button class="btn btn-sm btn-warning" @onclick="() => NavigateToEditLandingZone(landingZone.WorkloadEnvironmentRegionId)">
+                        Edit
+                    </button>
+                    <button class="btn btn-sm btn-danger" @onclick="() => DeleteLandingZone(landingZone.WorkloadEnvironmentRegionId)">
+                        Delete
+                    </button> *@
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    [Parameter] public int WorkloadId { get; set; }
+    private List<WorkloadEnvironmentRegionDto> landingZones = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        landingZones = await WorkloadService.GetLandingZonesForWorkloadAsync(WorkloadId);
+    }
+
+    private void NavigateToAddLandingZone()
+    {
+        Navigation.NavigateTo($"/add-landing-zone/{WorkloadId}");
+    }
+
+    @* private void NavigateToEditLandingZone(int landingZoneId)
+    {
+        Navigation.NavigateTo($"/edit-landing-zone/{landingZoneId}");
+    }
+
+    private async Task DeleteLandingZone(int landingZoneId)
+    {
+        await WorkloadService.DeleteLandingZoneAsync(landingZoneId);
+        landingZones = await WorkloadService.GetLandingZonesForWorkloadAsync(WorkloadId); // Refresh list
+    } *@
+}

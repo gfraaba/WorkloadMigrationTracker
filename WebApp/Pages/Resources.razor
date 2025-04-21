@@ -1,0 +1,115 @@
+@page "/resources/{landingZoneId:int}"
+@using Shared.DTOs
+@using WebApp.Services
+@inject WorkloadService WorkloadService
+@inject NavigationManager Navigation
+
+<h3>Resources</h3>
+
+@if (workload != null && landingZone != null)
+{
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a @onclick="NavigateToWorkloads">Workloads</a></li>
+            <li class="breadcrumb-item"><a @onclick="NavigateToLandingZones">Landing Zones</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@landingZone.Name</li>
+        </ol>
+    </nav>
+
+    <div class="mb-3">
+        <h5>Workload: @workload.Name</h5>
+        @* <p><strong>Description:</strong> @workload.Description</p>
+        <p><strong>Primary POC:</strong> @workload.PrimaryPOC</p>
+        <p><strong>Secondary POC:</strong> @workload.SecondaryPOC</p> *@
+    </div>
+
+    <div class="mb-3">
+        <h5>Landing Zone: @landingZone.Name</h5>
+        @* <p><strong>Environment:</strong> @landingZone.EnvironmentTypeName</p>
+        <p><strong>Region:</strong> @landingZone.RegionName</p> *@
+    </div>
+}
+
+<button class="btn btn-primary mb-3" @onclick="NavigateToAddResource">
+    Add Resource
+</button>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var resource in resources)
+        {
+            <tr>
+                <td>@resource.Name</td>
+                <td>@resource.ResourceType?.Name</td>
+                <td>@resource.Status</td>
+                <td>
+                    @* <button class="btn btn-sm btn-warning" @onclick="() => NavigateToEditResource(resource.ResourceId)">
+                        Edit
+                    </button>
+                    <button class="btn btn-sm btn-danger" @onclick="() => DeleteResource(resource.ResourceId)">
+                        Delete
+                    </button> *@
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    [Parameter] public int LandingZoneId { get; set; }
+    private WorkloadDto? workload = null;
+    private WorkloadEnvironmentRegionDto? landingZone = null;
+    private List<ResourceDto> resources = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Fetch landing zone details
+        landingZone = await WorkloadService.GetLandingZoneAsync(LandingZoneId);
+
+        // Fetch workload details if landing zone is found
+        if (landingZone != null)
+        {
+            workload = await WorkloadService.GetWorkloadByIdAsync(landingZone.WorkloadId);
+        }
+
+        // Fetch resources for the landing zone
+        resources = await WorkloadService.GetResourcesForLandingZoneAsync(LandingZoneId);
+    }
+
+    private void NavigateToAddResource()
+    {
+        Navigation.NavigateTo($"/add-resource/{LandingZoneId}");
+    }
+
+    @* private void NavigateToEditResource(int resourceId)
+    {
+        Navigation.NavigateTo($"/edit-resource/{resourceId}");
+    }
+
+    private async Task DeleteResource(int resourceId)
+    {
+        await WorkloadService.DeleteResourceAsync(resourceId);
+        resources = await WorkloadService.GetResourcesForLandingZoneAsync(LandingZoneId); // Refresh list
+    } *@
+
+    private void NavigateToLandingZones()
+    {
+        if (landingZone != null)
+        {
+            Navigation.NavigateTo($"/landing-zones/{landingZone.WorkloadId}");
+        }
+    }
+
+    private void NavigateToWorkloads()
+    {
+        Navigation.NavigateTo("/workloads");
+    }
+}

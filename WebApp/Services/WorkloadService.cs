@@ -127,6 +127,11 @@ public class WorkloadService
         Console.WriteLine("WorkloadService: Landing zone added successfully.");
     }
 
+    public async Task<WorkloadEnvironmentRegionDto?> GetLandingZoneAsync(int landingZoneId)
+    {
+        return await _httpClient.GetFromJsonAsync<WorkloadEnvironmentRegionDto>($"api/WorkloadEnvironmentRegions/{landingZoneId}");
+    }
+
     public async Task<List<ResourceDto>> GetResourcesForLandingZoneAsync(int landingZoneId)
     {
         Console.WriteLine($"WorkloadService: Fetching resources for landing zone {landingZoneId}.");

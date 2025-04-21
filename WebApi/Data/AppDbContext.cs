@@ -97,6 +97,16 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<WorkloadEnvironmentRegion>(entity =>
         {
             entity.HasIndex(w => new { w.WorkloadId, w.EnvironmentTypeId, w.RegionId }).IsUnique();
+
+            entity.HasOne(w => w.Workload)
+                  .WithMany(w => w.WorkloadEnvironmentRegions)
+                  .HasForeignKey(w => w.WorkloadId)
+                  .OnDelete(DeleteBehavior.Cascade); // Cascade delete WorkloadEnvironmentRegion when Workload is deleted
+
+            entity.HasMany(w => w.Resources)
+                  .WithOne(r => r.WorkloadEnvironmentRegion)
+                  .HasForeignKey(r => r.WorkloadEnvironmentRegionId)
+                  .OnDelete(DeleteBehavior.Cascade); // Cascade delete Resources when WorkloadEnvironmentRegion is deleted
         });
 
         modelBuilder.Entity<ResourcePropertyValue>(entity =>
