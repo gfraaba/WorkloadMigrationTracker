@@ -60,13 +60,9 @@
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            @if (resources == null)
+                                                            @if (resources == null || (!resources.Any()))
                                                             {
-                                                                <tr><td colspan="2">Loading...</td></tr>
-                                                            }
-                                                            else if (!resources.Any())
-                                                            {
-                                                                <tr><td colspan="2">No resources found.</td></tr>
+                                                                <tr><td colspan="2">No Resources Found!</td></tr>
                                                             }
                                                             else
                                                             {
@@ -74,7 +70,7 @@
                                                                 {
                                                                     <tr>
                                                                         <td>@resource.Name</td>
-                                                                        <td>@resource.ResourceType.Name</td>
+                                                                        <td>@resource.ResourceType?.Name</td>
                                                                     </tr>
                                                                 }
                                                             }

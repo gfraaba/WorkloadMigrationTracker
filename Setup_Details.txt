@@ -132,6 +132,7 @@ You can correlate client-side actions with server-side processing for a complete
 
 #-------
 dotnet new blazorwasm -o WebApp --framework net9.0
+dotnet add package Microsoft.AspNetCore.Components.Web
 
 #-----
 

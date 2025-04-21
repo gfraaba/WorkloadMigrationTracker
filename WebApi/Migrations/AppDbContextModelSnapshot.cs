@@ -21,7 +21,7 @@ namespace WebApi.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Shared.Models.AzureRegion", b =>
+            modelBuilder.Entity("WebApi.Models.AzureRegion", b =>
                 {
                     b.Property<int>("RegionId")
                         .ValueGeneratedOnAdd()
@@ -64,7 +64,7 @@ namespace WebApi.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Shared.Models.EnvironmentType", b =>
+            modelBuilder.Entity("WebApi.Models.EnvironmentType", b =>
                 {
                     b.Property<int>("EnvironmentTypeId")
                         .ValueGeneratedOnAdd()
@@ -104,7 +104,7 @@ namespace WebApi.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Shared.Models.Resource", b =>
+            modelBuilder.Entity("WebApi.Models.Resource", b =>
                 {
                     b.Property<int>("ResourceId")
                         .ValueGeneratedOnAdd()
@@ -145,7 +145,7 @@ namespace WebApi.Migrations
                     b.ToTable("Resources");
                 });
 
-            modelBuilder.Entity("Shared.Models.ResourceCategory", b =>
+            modelBuilder.Entity("WebApi.Models.ResourceCategory", b =>
                 {
                     b.Property<int>("CategoryId")
                         .ValueGeneratedOnAdd()
@@ -206,7 +206,104 @@ namespace WebApi.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Shared.Models.ResourceStatus", b =>
+            modelBuilder.Entity("WebApi.Models.ResourceProperty", b =>
+                {
+                    b.Property<int>("PropertyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PropertyId"));
+
+                    b.Property<string>("DataType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DefaultValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("ResourceTypeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("PropertyId");
+
+                    b.HasIndex("ResourceTypeId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("ResourceProperties");
+
+                    b.HasData(
+                        new
+                        {
+                            PropertyId = 1,
+                            DataType = "string",
+                            DefaultValue = "Windows",
+                            IsRequired = true,
+                            Name = "OsType",
+                            ResourceTypeId = 1
+                        },
+                        new
+                        {
+                            PropertyId = 2,
+                            DataType = "string",
+                            DefaultValue = "Standard_DS1_v2",
+                            IsRequired = true,
+                            Name = "VmSize",
+                            ResourceTypeId = 1
+                        },
+                        new
+                        {
+                            PropertyId = 3,
+                            DataType = "int",
+                            DefaultValue = "128",
+                            IsRequired = true,
+                            Name = "OsDiskSizeGB",
+                            ResourceTypeId = 1
+                        },
+                        new
+                        {
+                            PropertyId = 4,
+                            DataType = "int",
+                            DefaultValue = "100",
+                            IsRequired = false,
+                            Name = "DataDiskSizeGB",
+                            ResourceTypeId = 1
+                        });
+                });
+
+            modelBuilder.Entity("WebApi.Models.ResourcePropertyValue", b =>
+                {
+                    b.Property<int>("PropertyValueId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PropertyValueId"));
+
+                    b.Property<int>("PropertyId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ResourceId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("PropertyValueId");
+
+                    b.HasIndex("ResourceId", "PropertyId")
+                        .IsUnique();
+
+                    b.ToTable("ResourcePropertyValues");
+                });
+
+            modelBuilder.Entity("WebApi.Models.ResourceStatus", b =>
                 {
                     b.Property<int>("StatusId")
                         .ValueGeneratedOnAdd()
@@ -240,7 +337,7 @@ namespace WebApi.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Shared.Models.ResourceType", b =>
+            modelBuilder.Entity("WebApi.Models.ResourceType", b =>
                 {
                     b.Property<int>("TypeId")
                         .ValueGeneratedOnAdd()
@@ -444,7 +541,7 @@ namespace WebApi.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Shared.Models.Workload", b =>
+            modelBuilder.Entity("WebApi.Models.Workload", b =>
                 {
                     b.Property<int>("WorkloadId")
                         .ValueGeneratedOnAdd()
@@ -474,7 +571,7 @@ namespace WebApi.Migrations
                     b.ToTable("Workloads");
                 });
 
-            modelBuilder.Entity("Shared.Models.WorkloadEnvironmentRegion", b =>
+            modelBuilder.Entity("WebApi.Models.WorkloadEnvironmentRegion", b =>
                 {
                     b.Property<int>("WorkloadEnvironmentRegionId")
                         .ValueGeneratedOnAdd()
@@ -509,25 +606,25 @@ namespace WebApi.Migrations
                     b.ToTable("WorkloadEnvironmentRegions");
                 });
 
-            modelBuilder.Entity("Shared.Models.Resource", b =>
+            modelBuilder.Entity("WebApi.Models.Resource", b =>
                 {
-                    b.HasOne("Shared.Models.ResourceStatus", null)
+                    b.HasOne("WebApi.Models.ResourceStatus", null)
                         .WithMany("Resources")
                         .HasForeignKey("ResourceStatusStatusId");
 
-                    b.HasOne("Shared.Models.ResourceType", "ResourceType")
+                    b.HasOne("WebApi.Models.ResourceType", "ResourceType")
                         .WithMany("Resources")
                         .HasForeignKey("ResourceTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Shared.Models.WorkloadEnvironmentRegion", "WorkloadEnvironmentRegion")
+                    b.HasOne("WebApi.Models.WorkloadEnvironmentRegion", "WorkloadEnvironmentRegion")
                         .WithMany("Resources")
                         .HasForeignKey("WorkloadEnvironmentRegionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Shared.Models.Workload", null)
+                    b.HasOne("WebApi.Models.Workload", null)
                         .WithMany("Resources")
                         .HasForeignKey("WorkloadId");
 
@@ -536,9 +633,27 @@ namespace WebApi.Migrations
                     b.Navigation("WorkloadEnvironmentRegion");
                 });
 
-            modelBuilder.Entity("Shared.Models.ResourceType", b =>
+            modelBuilder.Entity("WebApi.Models.ResourceProperty", b =>
                 {
-                    b.HasOne("Shared.Models.ResourceCategory", "Category")
+                    b.HasOne("WebApi.Models.ResourceType", null)
+                        .WithMany("Properties")
+                        .HasForeignKey("ResourceTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApi.Models.ResourcePropertyValue", b =>
+                {
+                    b.HasOne("WebApi.Models.Resource", null)
+                        .WithMany("PropertyValues")
+                        .HasForeignKey("ResourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApi.Models.ResourceType", b =>
+                {
+                    b.HasOne("WebApi.Models.ResourceCategory", "Category")
                         .WithMany("ResourceTypes")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -547,21 +662,21 @@ namespace WebApi.Migrations
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("Shared.Models.WorkloadEnvironmentRegion", b =>
+            modelBuilder.Entity("WebApi.Models.WorkloadEnvironmentRegion", b =>
                 {
-                    b.HasOne("Shared.Models.EnvironmentType", "EnvironmentType")
+                    b.HasOne("WebApi.Models.EnvironmentType", "EnvironmentType")
                         .WithMany()
                         .HasForeignKey("EnvironmentTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Shared.Models.AzureRegion", "Region")
+                    b.HasOne("WebApi.Models.AzureRegion", "Region")
                         .WithMany()
                         .HasForeignKey("RegionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Shared.Models.Workload", "Workload")
+                    b.HasOne("WebApi.Models.Workload", "Workload")
                         .WithMany("WorkloadEnvironmentRegions")
                         .HasForeignKey("WorkloadId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -574,29 +689,36 @@ namespace WebApi.Migrations
                     b.Navigation("Workload");
                 });
 
-            modelBuilder.Entity("Shared.Models.ResourceCategory", b =>
+            modelBuilder.Entity("WebApi.Models.Resource", b =>
+                {
+                    b.Navigation("PropertyValues");
+                });
+
+            modelBuilder.Entity("WebApi.Models.ResourceCategory", b =>
                 {
                     b.Navigation("ResourceTypes");
                 });
 
-            modelBuilder.Entity("Shared.Models.ResourceStatus", b =>
+            modelBuilder.Entity("WebApi.Models.ResourceStatus", b =>
                 {
                     b.Navigation("Resources");
                 });
 
-            modelBuilder.Entity("Shared.Models.ResourceType", b =>
+            modelBuilder.Entity("WebApi.Models.ResourceType", b =>
                 {
+                    b.Navigation("Properties");
+
                     b.Navigation("Resources");
                 });
 
-            modelBuilder.Entity("Shared.Models.Workload", b =>
+            modelBuilder.Entity("WebApi.Models.Workload", b =>
                 {
                     b.Navigation("Resources");
 
                     b.Navigation("WorkloadEnvironmentRegions");
                 });
 
-            modelBuilder.Entity("Shared.Models.WorkloadEnvironmentRegion", b =>
+            modelBuilder.Entity("WebApi.Models.WorkloadEnvironmentRegion", b =>
                 {
                     b.Navigation("Resources");
                 });

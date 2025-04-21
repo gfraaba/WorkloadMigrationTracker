@@ -10,9 +10,13 @@ public class ResourceType
     public required string AzureResourceType { get; set; }
     public int CategoryId { get; set; }
 
-    [ValidateNever]
-    public ResourceCategory? Category { get; set; } // Removed default initialization
     [JsonIgnore]
     [ValidateNever]
     public ICollection<Resource> Resources { get; set; } = new List<Resource>();
+
+    [ValidateNever]
+    public ResourceCategory? Category { get; set; } // Removed default initialization
+
+    [ValidateNever]
+    public ICollection<ResourceProperty> Properties { get; set; } = new List<ResourceProperty>(); // New navigation property
 }

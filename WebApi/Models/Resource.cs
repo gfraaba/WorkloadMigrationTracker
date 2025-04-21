@@ -19,4 +19,7 @@ public class Resource
     public WorkloadEnvironmentRegion? WorkloadEnvironmentRegion { get; set; }
     [ValidateNever]
     public ResourceType? ResourceType { get; set; }
+
+    [ValidateNever]
+    public ICollection<ResourcePropertyValue> PropertyValues { get; set; } = new List<ResourcePropertyValue>(); // Navigation property for property values
 }

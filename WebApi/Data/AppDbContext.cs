@@ -13,6 +13,8 @@ public class AppDbContext : DbContext
     public DbSet<AzureRegion> AzureRegions { get; set; }
     public DbSet<ResourceCategory> ResourceCategories { get; set; }
     public DbSet<ResourceType> ResourceTypes { get; set; }
+    public DbSet<ResourceProperty> ResourceProperties { get; set; }
+    public DbSet<ResourcePropertyValue> ResourcePropertyValues { get; set; }
     public DbSet<WorkloadEnvironmentRegion> WorkloadEnvironmentRegions { get; set; }
     public DbSet<ResourceStatus> ResourceStatuses { get; set; }
 
@@ -55,8 +57,24 @@ public class AppDbContext : DbContext
                 .HasForeignKey(rt => rt.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict); // Or your preferred delete behavior
 
-            // Automatically include the Category navigation property
+            // Configure the relationship with ResourceProperty
+            entity.HasMany(rt => rt.Properties)
+                .WithOne()
+                .HasForeignKey(rp => rp.ResourceTypeId)
+                .OnDelete(DeleteBehavior.Cascade); // Cascade delete properties when a resource type is deleted
+
+            // Automatically include the navigation properties
             entity.Navigation(rt => rt.Category).AutoInclude();
+            entity.Navigation(rt => rt.Properties).AutoInclude();
+        });
+
+        modelBuilder.Entity<ResourceProperty>(entity =>
+        {
+            // Configure PropertyId as the primary key
+            entity.HasKey(rp => rp.PropertyId);
+
+            // Ensure unique constraint on ResourceTypeId and Name
+            entity.HasIndex(rp => new { rp.ResourceTypeId, rp.Name }).IsUnique();
         });
 
         // Configure primary keys and relationships
@@ -71,6 +89,9 @@ public class AppDbContext : DbContext
                   .WithMany(s => s.Resources)
                   .HasForeignKey(r => r.ResourceTypeId) // Updated from ResourceTypeId to TypeId
                   .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete
+                
+            // AutoInclude PropertyValues
+            entity.Navigation(r => r.PropertyValues).AutoInclude();
         });
 
         modelBuilder.Entity<WorkloadEnvironmentRegion>(entity =>
@@ -78,7 +99,16 @@ public class AppDbContext : DbContext
             entity.HasIndex(w => new { w.WorkloadId, w.EnvironmentTypeId, w.RegionId }).IsUnique();
         });
 
-        // Seed data - EXACTLY matches your SQL script
+        modelBuilder.Entity<ResourcePropertyValue>(entity =>
+        {
+            // Configure PropertyValueId as the primary key
+            entity.HasKey(rpv => rpv.PropertyValueId);
+
+            // Optional: Add an index on ResourceId and PropertyId for faster lookups
+            entity.HasIndex(rpv => new { rpv.ResourceId, rpv.PropertyId }).IsUnique();
+        });
+
+        // Seed data
         SeedData(modelBuilder);
     }
 
@@ -176,6 +206,14 @@ public class AppDbContext : DbContext
             // Security
             new ResourceType { TypeId = 24, CategoryId = 6, Name = "Key Vault", AzureResourceType = "Microsoft.KeyVault/vaults" },
             new ResourceType { TypeId = 25, CategoryId = 6, Name = "Managed Identity", AzureResourceType = "Microsoft.ManagedIdentity/userAssignedIdentities" }
+        );
+
+        // Resource Properties
+        modelBuilder.Entity<ResourceProperty>().HasData(
+            new ResourceProperty { PropertyId = 1, ResourceTypeId = 1, Name = "OsType", DataType = "string", IsRequired = true, DefaultValue = "Windows" },
+            new ResourceProperty { PropertyId = 2, ResourceTypeId = 1, Name = "VmSize", DataType = "string", IsRequired = true, DefaultValue = "Standard_DS1_v2" },
+            new ResourceProperty { PropertyId = 3, ResourceTypeId = 1, Name = "OsDiskSizeGB", DataType = "int", IsRequired = true, DefaultValue = "128" },
+            new ResourceProperty { PropertyId = 4, ResourceTypeId = 1, Name = "DataDiskSizeGB", DataType = "int", IsRequired = false, DefaultValue = "100" }
         );
     }
 }

@@ -27,6 +27,29 @@
             }
         </select>
     </div>
+    @if (resourceProperties != null)
+    {
+        @foreach (var property in resourceProperties)
+        {
+            <div class="mb-3">
+                <label for="@property.Name" class="form-label">@property.Name</label>
+                @if (property.DataType == "string")
+                {
+                    <DynamicStringInput Value="@(dynamicProperties[property.Name]?.ToString() ?? string.Empty)"
+                                        ValueChanged="@(value => UpdateDynamicProperty(property.Name, value))" />
+                }
+                else if (property.DataType == "int")
+                {
+                    <DynamicIntInput Value="@(dynamicProperties[property.Name] is int intValue ? intValue : 0)"
+                                    ValueChanged="@(value => UpdateDynamicProperty(property.Name, value))" />
+                }
+                else
+                {
+                    <p class="text-danger">Unsupported data type: @property.DataType</p>
+                }
+            </div>
+        }
+    }
     <div class="mb-3">
         <label for="status" class="form-label">Status</label>
         <select id="status" class="form-control" @bind="newResource.Status">
@@ -45,7 +68,10 @@
 
 @code {
     [Parameter] public int workloadEnvironmentRegionId { get; set; }
+    private List<ResourceTypeDto> resourceTypes = new();
     private List<ResourceStatusDto> statuses = new();
+    private List<ResourcePropertyDto>? resourceProperties = null;
+    private Dictionary<string, object> dynamicProperties = new();
     private ResourceDto newResource = new ResourceDto
     {
         Name = string.Empty,
@@ -54,8 +80,6 @@
         WorkloadEnvironmentRegionId = 0
     };
 
-    private List<ResourceTypeDto> resourceTypes = new();
-
     protected override async Task OnInitializedAsync()
     {
         resourceTypes = await WorkloadService.GetResourceTypesAsync();
@@ -63,18 +87,53 @@
         newResource.WorkloadEnvironmentRegionId = workloadEnvironmentRegionId;
     }
 
-    private void HandleResourceTypeChange(ChangeEventArgs e)
+    private async Task HandleResourceTypeChange(ChangeEventArgs e)
     {
         if (int.TryParse(e.Value?.ToString(), out var typeId))
         {
             newResource.ResourceTypeId = typeId;
             Console.WriteLine($"ResourceTypeId set to: {newResource.ResourceTypeId}");
+            resourceProperties = await WorkloadService.GetResourcePropertiesAsync(typeId);
+
+            if (resourceProperties == null || !resourceProperties.Any())
+            {
+                Console.WriteLine("No resource properties found!");
+            }
+            else
+            {
+                Console.WriteLine($"Loaded {resourceProperties.Count} resource properties.");
+            }
+
+            // Initialize dynamic properties with default values
+            if (resourceProperties != null && resourceProperties.Any())
+            {
+                dynamicProperties = resourceProperties.ToDictionary(
+                    p => p.Name,
+                    p =>
+                    {
+                        if (p.DataType == "int" && int.TryParse(p.DefaultValue, out var intValue))
+                        {
+                            return (object)intValue;
+                        }
+                        else if (p.DataType == "string")
+                        {
+                            return (object)(p.DefaultValue ?? string.Empty);
+                        }
+                        return null!;
+                    }
+                );
+            }
+            else
+            {
+                dynamicProperties.Clear();
+            }
         }
     }
 
     private async Task HandleValidSubmit()
     {
         // Map selected values to newResource properties
+        newResource.Properties = dynamicProperties; // Include dynamic properties
         newResource.WorkloadEnvironmentRegionId = workloadEnvironmentRegionId;
 
         Console.WriteLine($"Submitting Resource: Name={newResource.Name}, ResourceTypeId={newResource.ResourceTypeId}, Status={newResource.Status}, WorkloadEnvironmentRegionId={newResource.WorkloadEnvironmentRegionId}");
@@ -85,5 +144,10 @@
     private void NavigateBack()
     {
         Navigation.NavigateTo($"/workloads");
+    }
+
+    private void UpdateDynamicProperty(string propertyName, object value)
+    {
+        dynamicProperties[propertyName] = value;
     }
 }

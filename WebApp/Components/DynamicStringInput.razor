@@ -1,0 +1,7 @@
+<InputText @attributes="AdditionalAttributes" class="form-control" @bind-Value="Value" />
+
+@code {
+    [Parameter] public string Value { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    [Parameter] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+}

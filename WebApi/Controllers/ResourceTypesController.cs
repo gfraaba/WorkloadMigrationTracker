@@ -17,7 +17,9 @@ public class ResourceTypesController : ControllerBase
 
     private IQueryable<ResourceType> IncludeRelatedEntities()
     {
-        return _context.ResourceTypes.Include(rt => rt.Category);
+        return _context.ResourceTypes
+            .Include(rt => rt.Category)
+            .Include(rt => rt.Properties);
     }
 
     private ResourceTypeDto MapToDto(ResourceType resourceType)
@@ -33,7 +35,16 @@ public class ResourceTypesController : ControllerBase
                 CategoryId = resourceType.Category.CategoryId,
                 Name = resourceType.Category.Name,
                 AzureServiceType = resourceType.Category.AzureServiceType
-            } : null
+            } : null,
+            Properties = resourceType.Properties.Select(rp => new ResourcePropertyDto
+            {
+                PropertyId = rp.PropertyId,
+                ResourceTypeId = rp.ResourceTypeId,
+                Name = rp.Name,
+                DataType = rp.DataType,
+                IsRequired = rp.IsRequired,
+                DefaultValue = rp.DefaultValue
+            }).ToList()
         };
     }
 

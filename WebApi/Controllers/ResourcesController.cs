@@ -21,7 +21,8 @@ public class ResourcesController : ControllerBase
         return _context.Resources
             .Include(r => r.WorkloadEnvironmentRegion)
             .Include(r => r.ResourceType)
-            .ThenInclude(rt => rt.Category);
+            .ThenInclude(r => r.Category)
+            .Include(r => r.PropertyValues);
     }
 
     private ResourceDto MapToDto(Resource resource)
@@ -44,6 +45,15 @@ public class ResourcesController : ControllerBase
                     CategoryId = resource.ResourceType.Category.CategoryId,
                     Name = resource.ResourceType.Category.Name
                 } : null
+                // ,Properties = resource.ResourceType.Properties.Select(rp => new ResourcePropertyDto
+                // {
+                //     PropertyId = rp.PropertyId,
+                //     ResourceTypeId = rp.ResourceTypeId,
+                //     Name = rp.Name,
+                //     DataType = rp.DataType,
+                //     IsRequired = rp.IsRequired,
+                //     DefaultValue = rp.DefaultValue
+                // }).ToList()
             } : null,
             WorkloadEnvironmentRegion = resource.WorkloadEnvironmentRegion != null ? new WorkloadEnvironmentRegionDto
             {
@@ -52,7 +62,11 @@ public class ResourcesController : ControllerBase
                 ResourceGroupName = resource.WorkloadEnvironmentRegion.ResourceGroupName,
                 EnvironmentTypeId = resource.WorkloadEnvironmentRegion.EnvironmentTypeId,
                 RegionId = resource.WorkloadEnvironmentRegion.RegionId
-            } : null
+            } : null,
+            Properties = resource.PropertyValues.ToDictionary(
+                pv => _context.ResourceProperties.FirstOrDefault(rp => rp.PropertyId == pv.PropertyId)?.Name ?? string.Empty,
+                pv => (object)pv.Value
+            )
         };
     }
 
@@ -153,33 +167,72 @@ public class ResourcesController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> AddResource([FromBody] Resource resource)
+    public async Task<IActionResult> AddResource([FromBody] ResourceDto resourceDto)
     {
-        Console.WriteLine($"ResourcesController: Received request to add resource to LZ Id {resource.WorkloadEnvironmentRegionId}.");
-        Console.WriteLine($"Resource Details: Name={resource.Name}, ResourceTypeId={resource.ResourceTypeId}, Status={resource.Status}");
+        Console.WriteLine($"ResourcesController: Received request to add resource to LZ Id {resourceDto.WorkloadEnvironmentRegionId}.");
+        Console.WriteLine($"Resource Details: Name={resourceDto.Name}, ResourceTypeId={resourceDto.ResourceTypeId}, Status={resourceDto.Status}");
 
         // Ensure WorkloadEnvironmentRegion exists
         var workloadEnvironmentRegion = await _context.WorkloadEnvironmentRegions
-            .FirstOrDefaultAsync(w => w.WorkloadEnvironmentRegionId == resource.WorkloadEnvironmentRegionId);
+            .FirstOrDefaultAsync(w => w.WorkloadEnvironmentRegionId == resourceDto.WorkloadEnvironmentRegionId);
         if (workloadEnvironmentRegion == null)
         {
-            Console.WriteLine($"ResourcesController: WorkloadEnvironmentRegion with ID {resource.WorkloadEnvironmentRegionId} not found.");
-            return NotFound(new { error = $"WorkloadEnvironmentRegion with ID {resource.WorkloadEnvironmentRegionId} not found." });
+            Console.WriteLine($"ResourcesController: WorkloadEnvironmentRegion with ID {resourceDto.WorkloadEnvironmentRegionId} not found.");
+            return NotFound(new { error = $"WorkloadEnvironmentRegion with ID {resourceDto.WorkloadEnvironmentRegionId} not found." });
         }
 
-        var resourceTypeExists = await _context.ResourceTypes.AnyAsync(rt => rt.TypeId == resource.ResourceTypeId);
-        if (!resourceTypeExists)
+        // Ensure ResourceType exists
+        var resourceType = await _context.ResourceTypes
+            .Include(rt => rt.Properties)
+            .FirstOrDefaultAsync(rt => rt.TypeId == resourceDto.ResourceTypeId);
+        if (resourceType == null)
         {
-            Console.WriteLine($"ResourcesController: ResourceType with ID {resource.ResourceTypeId} not found.");
-            return BadRequest(new { error = $"ResourceType with ID {resource.ResourceTypeId} not found." });
+            Console.WriteLine($"ResourcesController: ResourceType with ID {resourceDto.ResourceTypeId} not found.");
+            return BadRequest(new { error = $"ResourceType with ID {resourceDto.ResourceTypeId} not found." });
         }
+
+        // Validate required properties
+        foreach (var property in resourceType.Properties.Where(p => p.IsRequired))
+        {
+            if (!resourceDto.Properties.ContainsKey(property.Name) || resourceDto.Properties[property.Name] == null)
+            {
+                return BadRequest(new { error = $"Missing required property: {property.Name}" });
+            }
+        }
+
+        // Add the base Resource
+        var resource = new Resource
+        {
+            Name = resourceDto.Name,
+            WorkloadEnvironmentRegionId = resourceDto.WorkloadEnvironmentRegionId,
+            ResourceTypeId = resourceDto.ResourceTypeId,
+            Status = resourceDto.Status
+        };
 
         try
         {
             _context.Resources.Add(resource);
             await _context.SaveChangesAsync();
             Console.WriteLine("ResourcesController: Resource added successfully.");
-            return Ok(resource);
+
+            // Add ResourcePropertyValues
+            foreach (var property in resourceDto.Properties)
+            {
+                var propertyMetadata = resourceType.Properties.FirstOrDefault(p => p.Name == property.Key);
+                if (propertyMetadata != null)
+                {
+                    var propertyValue = new ResourcePropertyValue
+                    {
+                        ResourceId = resource.ResourceId,
+                        PropertyId = propertyMetadata.PropertyId,
+                        Value = property.Value.ToString() ?? string.Empty
+                    };
+                    _context.ResourcePropertyValues.Add(propertyValue);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(resourceDto);
         }
         catch (Exception ex)
         {

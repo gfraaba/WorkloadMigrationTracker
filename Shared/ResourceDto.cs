@@ -9,4 +9,5 @@ public class ResourceDto
     public string Status { get; set; } = string.Empty;
     public ResourceTypeDto? ResourceType { get; set; }
     public WorkloadEnvironmentRegionDto? WorkloadEnvironmentRegion { get; set; }
+    public Dictionary<string, object> Properties { get; set; } = new();
 }

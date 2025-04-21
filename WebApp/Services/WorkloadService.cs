@@ -138,4 +138,11 @@ public class WorkloadService
         Console.WriteLine($"Fetching resources for workload environment region ID: {workloadEnvironmentRegionId}");
         return await _httpClient.GetFromJsonAsync<List<ResourceDto>>($"api/resources/landing-zone/{workloadEnvironmentRegionId}") ?? new List<ResourceDto>();
     }
+
+    public async Task<List<ResourcePropertyDto>> GetResourcePropertiesAsync(int resourceTypeId)
+    {
+        Console.WriteLine($"Fetching resource properties for ResourceTypeId: {resourceTypeId}");
+        return await _httpClient.GetFromJsonAsync<List<ResourcePropertyDto>>($"api/resourceproperties/{resourceTypeId}") 
+            ?? new List<ResourcePropertyDto>();
+    }
 }
