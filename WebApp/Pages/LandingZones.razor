@@ -6,6 +6,27 @@
 
 <h3>Landing Zones</h3>
 
+@if (workload != null)
+{
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a @onclick="NavigateToWorkloads">Workloads</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@workload.Name</li>
+        </ol>
+    </nav>
+
+    <div class="mb-3">
+        <button class="btn btn-secondary mb-3" @onclick="NavigateToWorkloads">
+            ← Back to Workload
+        </button>
+
+        <h5>Workload: @workload.Name</h5>
+        @* <p><strong>Description:</strong> @workload.Description</p>
+        <p><strong>Primary POC:</strong> @workload.PrimaryPOC</p>
+        <p><strong>Secondary POC:</strong> @workload.SecondaryPOC</p> *@
+    </div>
+}
+
 <button class="btn btn-primary mb-3" @onclick="NavigateToAddLandingZone">
     Add Landing Zone
 </button>
@@ -27,6 +48,9 @@
                 <td>@landingZone.EnvironmentTypeName</td>
                 <td>@landingZone.RegionName</td>
                 <td>
+                    <button class="btn btn-sm btn-link" @onclick="() => NavigateToResources(landingZone.WorkloadEnvironmentRegionId)">
+                        View Resources
+                    </button>
                     @* <button class="btn btn-sm btn-warning" @onclick="() => NavigateToEditLandingZone(landingZone.WorkloadEnvironmentRegionId)">
                         Edit
                     </button>
@@ -41,16 +65,31 @@
 
 @code {
     [Parameter] public int WorkloadId { get; set; }
+    private WorkloadDto? workload = null;
     private List<WorkloadEnvironmentRegionDto> landingZones = new();
 
     protected override async Task OnInitializedAsync()
     {
+        // Fetch workload details
+        workload = await WorkloadService.GetWorkloadByIdAsync(WorkloadId);
+
+        // Fetch landing zones for the workload
         landingZones = await WorkloadService.GetLandingZonesForWorkloadAsync(WorkloadId);
     }
 
     private void NavigateToAddLandingZone()
     {
         Navigation.NavigateTo($"/add-landing-zone/{WorkloadId}");
+    }
+
+    private void NavigateToResources(int landingZoneId)
+    {
+        Navigation.NavigateTo($"/resources/{landingZoneId}");
+    }
+
+    private void NavigateToWorkloads()
+    {
+        Navigation.NavigateTo("/workloads");
     }
 
     @* private void NavigateToEditLandingZone(int landingZoneId)
