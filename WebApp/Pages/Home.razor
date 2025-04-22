@@ -4,24 +4,27 @@
 
 @inject WorkloadService WorkloadService
 
-<h3>Workloads</h3>
+<h3>Welcome to the Workload Management Dashboard</h3>
 
 @if (errorMessage != null)
 {
     <p class="text-danger">Error: @errorMessage</p>
 }
-else if (workloads == null)
+else if (workloads == null || (!workloads.Any()))
 {
-    <p>Loading...</p>
-}
-else if (!workloads.Any())
-{
-    <p>No workloads found.</p>
+    <p>No Workloads Found!</p>
 }
 else
 {
+    <div class="summary">
+        <p><strong>Total Workloads:</strong> @(workloads?.Count ?? 0)</p>
+        <p><strong>Total Landing Zones:</strong> @(workloads?.Sum(w => w.LandingZonesCount) ?? 0)</p>
+        <p><strong>Total Resources:</strong> @(workloads?.Sum(w => w.ResourcesCount) ?? 0)</p>
+    </div>
+
+    <h4>Recent Workloads</h4>
     <ul>
-        @foreach (var workload in workloads)
+        @foreach (var workload in workloads?.Take(5) ?? Enumerable.Empty<WorkloadDto>())
         {
             <li>@workload.Name</li>
         }
