@@ -121,10 +121,25 @@ public class WorkloadService
 
     public async Task AddLandingZoneAsync(WorkloadEnvironmentRegionDto landingZone)
     {
-        Console.WriteLine("WorkloadService: Adding a new landing zone.");
-        var response = await _httpClient.PostAsJsonAsync("api/workloadenvironmentregions", landingZone);
-        response.EnsureSuccessStatusCode();
-        Console.WriteLine("WorkloadService: Landing zone added successfully.");
+        try
+        {
+            Console.WriteLine("AddLandingZoneAsync: Sending the following payload to the server:");
+            Console.WriteLine($"WorkloadId: {landingZone.WorkloadId}");
+            Console.WriteLine($"EnvironmentTypeId: {landingZone.EnvironmentTypeId}");
+            Console.WriteLine($"RegionId: {landingZone.RegionId}");
+            Console.WriteLine($"AzureSubscriptionId: {landingZone.AzureSubscriptionId}");
+            Console.WriteLine($"ResourceGroupName: {landingZone.ResourceGroupName}");
+
+            var response = await _httpClient.PostAsJsonAsync("api/workloadenvironmentregions", landingZone);
+            response.EnsureSuccessStatusCode();
+
+            Console.WriteLine("AddLandingZoneAsync: Landing zone added successfully.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"AddLandingZoneAsync: Error occurred while adding landing zone - {ex.Message}");
+            throw;
+        }
     }
 
     public async Task<WorkloadEnvironmentRegionDto?> GetLandingZoneAsync(int landingZoneId)
@@ -149,5 +164,12 @@ public class WorkloadService
         Console.WriteLine($"Fetching resource properties for ResourceTypeId: {resourceTypeId}");
         return await _httpClient.GetFromJsonAsync<List<ResourcePropertyDto>>($"api/resourceproperties/{resourceTypeId}") 
             ?? new List<ResourcePropertyDto>();
+    }
+
+    public async Task<Dictionary<int, EnvironmentRegionsDto>> GetAvailableEnvironmentsAndRegionsAsync(int workloadId)
+    {
+        Console.WriteLine($"Fetching available environments and regions for workload {workloadId}.");
+        return await _httpClient.GetFromJsonAsync<Dictionary<int, EnvironmentRegionsDto>>($"api/WorkloadEnvironmentRegions/available-environments-and-regions/{workloadId}")
+            ?? new Dictionary<int, EnvironmentRegionsDto>();
     }
 }

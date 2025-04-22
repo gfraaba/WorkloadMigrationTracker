@@ -12,11 +12,11 @@
 
     <div class="mb-3">
         <label for="environment" class="form-label">Environment</label>
-        <select id="environment" class="form-control" @bind="newLandingZone.EnvironmentTypeId">
+        <select id="environment" class="form-control" @onchange="OnEnvironmentChange">
             <option value="0" disabled>Select Environment</option>
-            @foreach (var env in environments)
+            @foreach (var env in availableEnvironments)
             {
-                <option value="@env.EnvironmentTypeId">@env.Name</option>
+                <option value="@env.EnvironmentTypeId">@env.EnvironmentName</option>
             }
         </select>
     </div>
@@ -24,7 +24,7 @@
         <label for="region" class="form-label">Region</label>
         <select id="region" class="form-control" @bind="newLandingZone.RegionId">
             <option value="0" disabled>Select Region</option>
-            @foreach (var region in regions)
+            @foreach (var region in availableRegions)
             {
                 <option value="@region.RegionId">@region.Name</option>
             }
@@ -49,21 +49,65 @@
         AzureSubscriptionId = "",
         ResourceGroupName = ""
     };
-    private List<EnvironmentTypeDto> environments = new();
-    private List<AzureRegionDto> regions = new();
+    private Dictionary<int, EnvironmentRegionsDto> environmentRegionMapping = new();
+    private List<(int EnvironmentTypeId, string EnvironmentName)> availableEnvironments = new();
+    private List<AzureRegionDto> availableRegions = new();
 
     protected override async Task OnInitializedAsync()
     {
+        // Set the WorkloadId in the DTO
         newLandingZone.WorkloadId = WorkloadId;
-        environments = await WorkloadService.GetEnvironmentsAsync();
-        regions = await WorkloadService.GetRegionsAsync();
+
+        // Fetch environment-region mapping
+        var mapping = await WorkloadService.GetAvailableEnvironmentsAndRegionsAsync(WorkloadId);
+        if (mapping != null)
+        {
+            environmentRegionMapping = mapping;
+            availableEnvironments = mapping.Select(kvp => (kvp.Key, kvp.Value.EnvironmentName)).ToList();
+        }
+    }
+
+    private void OnEnvironmentChange(ChangeEventArgs e)
+    {
+        // Parse the selected EnvironmentTypeId
+        var selectedEnvironmentId = int.Parse(e.Value?.ToString() ?? "0");
+
+        // Update the EnvironmentTypeId in the DTO
+        newLandingZone.EnvironmentTypeId = selectedEnvironmentId;
+
+        // Update the available regions based on the selected environment
+        if (environmentRegionMapping.TryGetValue(selectedEnvironmentId, out var value))
+        {
+            availableRegions = value.Regions;
+        }
+        else
+        {
+            availableRegions.Clear();
+        }
     }
 
     private async Task HandleValidSubmit()
     {
-        Console.WriteLine($"Submitting Landing Zone: WorkloadId={newLandingZone.WorkloadId}, EnvironmentTypeId={newLandingZone.EnvironmentTypeId}, RegionId={newLandingZone.RegionId}, ResourceGroupName={newLandingZone.ResourceGroupName}");
-        await WorkloadService.AddLandingZoneAsync(newLandingZone);
-        Navigation.NavigateTo("/workloads");
+        try
+        {
+            // Log the DTO being sent to the server
+            Console.WriteLine("HandleValidSubmit: Preparing to send the following DTO to the server:");
+            Console.WriteLine($"WorkloadId: {newLandingZone.WorkloadId}");
+            Console.WriteLine($"EnvironmentTypeId: {newLandingZone.EnvironmentTypeId}");
+            Console.WriteLine($"RegionId: {newLandingZone.RegionId}");
+            Console.WriteLine($"AzureSubscriptionId: {newLandingZone.AzureSubscriptionId}");
+            Console.WriteLine($"ResourceGroupName: {newLandingZone.ResourceGroupName}");
+
+            // Send the DTO to the server
+            await WorkloadService.AddLandingZoneAsync(newLandingZone);
+
+            // Navigate back to the workloads page
+            Navigation.NavigateTo("/workloads");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"HandleValidSubmit: Error occurred while adding landing zone - {ex.Message}");
+        }
     }
 
     private void NavigateBack()
