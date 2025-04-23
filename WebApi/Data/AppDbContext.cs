@@ -77,6 +77,14 @@ public class AppDbContext : DbContext
             entity.HasIndex(rp => new { rp.ResourceTypeId, rp.Name }).IsUnique();
         });
 
+        modelBuilder.Entity<Workload>(entity =>
+        {
+            entity.HasMany(w => w.WorkloadEnvironmentRegions)
+                .WithOne(wr => wr.Workload)
+                .HasForeignKey(wr => wr.WorkloadId)
+                .OnDelete(DeleteBehavior.Cascade); // Cascade delete WorkloadEnvironmentRegions when Workload is deleted
+        });
+
         // Configure primary keys and relationships
         modelBuilder.Entity<Resource>(entity =>
         {

@@ -74,6 +74,19 @@ public class WorkloadsController : ControllerBase
         };
     }
 
+    private Workload MapToModel(WorkloadDto workloadDto)
+    {
+        return new Workload
+        {
+            WorkloadId = workloadDto.WorkloadId,
+            Name = workloadDto.Name,
+            Description = workloadDto.Description,
+            AzureNamePrefix = workloadDto.AzureNamePrefix,
+            PrimaryPOC = workloadDto.PrimaryPOC,
+            SecondaryPOC = workloadDto.SecondaryPOC
+        };
+    }
+
     [HttpGet]
     public async Task<ActionResult<IEnumerable<WorkloadDto>>> GetWorkloads()
     {
@@ -97,62 +110,82 @@ public class WorkloadsController : ControllerBase
 
     // POST: api/Workloads
     [HttpPost]
-    public async Task<ActionResult<Workload>> PostWorkload(Workload workload)
+    public async Task<ActionResult<Workload>> PostWorkload(WorkloadDto workloadDto)
     {
+        var workload = MapToModel(workloadDto);
         _context.Workloads.Add(workload);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetWorkload), new { id = workload.WorkloadId }, workload);
+        return CreatedAtAction(nameof(GetWorkload), new { id = workload.WorkloadId }, workloadDto);
     }
 
     // PUT: api/Workloads/5
     [HttpPut("{id}")]
-    public async Task<IActionResult> PutWorkload(int id, Workload workload)
+    public async Task<IActionResult> PutWorkload(int id, WorkloadDto workloadDto)
     {
-        if (id != workload.WorkloadId)
+        if (id != workloadDto.WorkloadId)
         {
             return BadRequest();
         }
 
-        _context.Entry(workload).State = EntityState.Modified;
-
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!WorkloadExists(id))
-            {
-                return NotFound();
-            }
-            else
-            {
-                throw;
-            }
-        }
-
-        return NoContent();
-    }
-
-    // DELETE: api/Workloads/5
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteWorkload(int id)
-    {
         var workload = await _context.Workloads.FindAsync(id);
         if (workload == null)
         {
             return NotFound();
         }
 
-        _context.Workloads.Remove(workload);
-        await _context.SaveChangesAsync();
+        // Updated: Mapped from DTO
+        workload = MapToModel(workloadDto);
+
+        try
+        {
+            // Save changes to the database
+            await _context.SaveChangesAsync();
+            Console.WriteLine($"WorkloadsController: Updated workload with ID {id}.");
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            Console.WriteLine($"WorkloadsController: Concurrency exception while updating workload with ID {id}.");
+            throw;
+        }
 
         return NoContent();
     }
 
-    private bool WorkloadExists(int id)
+
+    // DELETE: api/Workloads/5
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteWorkload(int id)
     {
-        return _context.Workloads.Any(e => e.WorkloadId == id);
+        var workload = await _context.Workloads
+            .Include(w => w.WorkloadEnvironmentRegions)
+                .ThenInclude(wr => wr.Resources)
+                    .ThenInclude(r => r.PropertyValues) // Include PropertyValues
+            .FirstOrDefaultAsync(w => w.WorkloadId == id);
+
+        if (workload == null)
+        {
+            Console.WriteLine($"WorkloadsController: Workload with ID {id} not found.");
+            return NotFound();
+        }
+
+        Console.WriteLine($"WorkloadsController: Deleting workload with ID {id}.");
+        Console.WriteLine($"WorkloadsController: Found {workload.WorkloadEnvironmentRegions.Count} landing zones.");
+
+        foreach (var region in workload.WorkloadEnvironmentRegions)
+        {
+            Console.WriteLine($"WorkloadsController: Landing Zone ID {region.WorkloadEnvironmentRegionId} has {region.Resources.Count} resources.");
+
+            foreach (var resource in region.Resources)
+            {
+                Console.WriteLine($"WorkloadsController: Resource ID {resource.ResourceId} has {resource.PropertyValues.Count} property values.");
+            }
+        }
+
+        _context.Workloads.Remove(workload);
+        await _context.SaveChangesAsync();
+        Console.WriteLine($"WorkloadsController: Deleted workload with ID {id}.");
+
+        return NoContent();
     }
 }

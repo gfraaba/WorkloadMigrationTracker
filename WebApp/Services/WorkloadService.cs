@@ -45,14 +45,34 @@ public class WorkloadService
 
     public async Task UpdateWorkloadAsync(WorkloadDto workload)
     {
-        var response = await _httpClient.PutAsJsonAsync($"api/workloads/{workload.WorkloadId}", workload);
-        response.EnsureSuccessStatusCode();
+        Console.WriteLine($"WorkloadService: Updating workload with ID {workload.WorkloadId}.");
+        try
+        {
+            var response = await _httpClient.PutAsJsonAsync($"api/workloads/{workload.WorkloadId}", workload);
+            response.EnsureSuccessStatusCode();
+            Console.WriteLine("WorkloadService: Workload updated successfully.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"WorkloadService: Error updating workload - {ex.Message}");
+            throw;
+        }
     }
 
-    public async Task DeleteWorkloadAsync(int id)
+    public async Task DeleteWorkloadAsync(int workloadId)
     {
-        var response = await _httpClient.DeleteAsync($"workloads/{id}");
-        response.EnsureSuccessStatusCode();
+        Console.WriteLine($"WorkloadService: Deleting workload with ID {workloadId}.");
+        try
+        {
+            var response = await _httpClient.DeleteAsync($"api/workloads/{workloadId}");
+            response.EnsureSuccessStatusCode();
+            Console.WriteLine("WorkloadService: Workload deleted successfully.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"WorkloadService: Error deleting workload - {ex.Message}");
+            throw;
+        }
     }
 
     public async Task AddResourceToWorkloadAsync(int workloadEnvironmentRegionId, ResourceDto resource)
