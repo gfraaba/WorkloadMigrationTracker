@@ -1,8 +1,8 @@
-@page "/workloads/create"
+@page "/workloads/add"
 @inject WorkloadService WorkloadService
 @inject NavigationManager Navigation
 
-<h3>Create Workload</h3>
+<h3>Add Workload</h3>
 
 <EditForm Model="newWorkload" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />
@@ -29,7 +29,7 @@
         <InputText id="secondaryPOC" class="form-control" @bind-Value="newWorkload.SecondaryPOC" />
     </div>
 
-    <button type="submit" class="btn btn-primary">Create</button>
+    <button type="submit" class="btn btn-primary">Add</button>
     <button type="button" class="btn btn-secondary" @onclick="NavigateBack">Cancel</button>
 </EditForm>
 
@@ -38,7 +38,7 @@
 
     private async Task HandleValidSubmit()
     {
-        await WorkloadService.CreateWorkloadAsync(newWorkload);
+        await WorkloadService.AddWorkloadAsync(newWorkload);
         Navigation.NavigateTo("/workloads");
     }
 

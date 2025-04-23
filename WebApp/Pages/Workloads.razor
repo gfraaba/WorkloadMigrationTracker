@@ -4,7 +4,7 @@
 
 <h3>Workloads</h3>
 
-<button class="btn btn-primary mb-3" @onclick="NavigateToCreateWorkload">
+<button class="btn btn-primary mb-3" @onclick="NavigateToAddWorkload">
     Add Workload
 </button>
 
@@ -74,9 +74,9 @@
         expandedWorkloadId = expandedWorkloadId == workloadId ? null : workloadId;
     }
 
-    private void NavigateToCreateWorkload()
+    private void NavigateToAddWorkload()
     {
-        Navigation.NavigateTo("/workloads/create");
+        Navigation.NavigateTo("/workloads/add");
     }
 
     private void NavigateToAddLandingZone(int workloadId)

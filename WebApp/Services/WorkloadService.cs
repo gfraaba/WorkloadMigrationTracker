@@ -32,7 +32,7 @@ public class WorkloadService
         }
     }
 
-    public async Task CreateWorkloadAsync(WorkloadDto workload)
+    public async Task AddWorkloadAsync(WorkloadDto workload)
     {
         var response = await _httpClient.PostAsJsonAsync("api/workloads", workload);
         response.EnsureSuccessStatusCode();
