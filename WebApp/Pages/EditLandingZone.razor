@@ -1,0 +1,68 @@
+@page "/edit-landing-zone/{landingZoneId:int}"
+@using Shared.DTOs
+@using WebApp.Services
+@inject WorkloadService WorkloadService
+@inject NavigationManager Navigation
+
+<h3>Edit Landing Zone</h3>
+
+@if (landingZone != null)
+{
+    <EditForm Model="landingZone" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label for="name" class="form-label">Name</label>
+            <InputText id="name" class="form-control" @bind-Value="landingZone.Name" />
+        </div>
+
+        <div class="mb-3">
+            <label for="environment" class="form-label">Environment</label>
+            <InputText id="environment" class="form-control" @bind-Value="landingZone.EnvironmentTypeName" Disabled />
+        </div>
+
+        <div class="mb-3">
+            <label for="region" class="form-label">Region</label>
+            <InputText id="region" class="form-control" @bind-Value="landingZone.RegionName" Disabled />
+        </div>
+
+        <div class="mb-3">
+            <label for="subscription" class="form-label">Azure Subscription ID</label>
+            <InputText id="subscription" class="form-control" @bind-Value="landingZone.AzureSubscriptionId" />
+        </div>
+
+        <div class="mb-3">
+            <label for="resourceGroup" class="form-label">Resource Group Name</label>
+            <InputText id="resourceGroup" class="form-control" @bind-Value="landingZone.ResourceGroupName" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save</button>
+        <button type="button" class="btn btn-secondary" @onclick="NavigateBack">Cancel</button>
+    </EditForm>
+}
+else
+{
+    <p>Loading...</p>
+}
+
+@code {
+    [Parameter] public int LandingZoneId { get; set; }
+    private WorkloadEnvironmentRegionDto? landingZone;
+
+    protected override async Task OnInitializedAsync()
+    {
+        landingZone = await WorkloadService.GetLandingZoneAsync(LandingZoneId);
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        await WorkloadService.UpdateLandingZoneAsync(landingZone!);
+        Navigation.NavigateTo($"/landing-zones/{landingZone?.WorkloadId}");
+    }
+
+    private void NavigateBack()
+    {
+        Navigation.NavigateTo($"/landing-zones/{landingZone?.WorkloadId}");
+    }
+}

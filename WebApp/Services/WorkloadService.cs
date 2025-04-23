@@ -40,7 +40,7 @@ public class WorkloadService
 
     public async Task<WorkloadDto> GetWorkloadByIdAsync(int id)
     {
-        return await _httpClient.GetFromJsonAsync<WorkloadDto>($"api/workloads/{id}");
+        return await _httpClient.GetFromJsonAsync<WorkloadDto>($"api/workloads/{id}") ?? new WorkloadDto();
     }
 
     public async Task UpdateWorkloadAsync(WorkloadDto workload)
@@ -171,5 +171,37 @@ public class WorkloadService
         Console.WriteLine($"Fetching available environments and regions for workload {workloadId}.");
         return await _httpClient.GetFromJsonAsync<Dictionary<int, EnvironmentRegionsDto>>($"api/WorkloadEnvironmentRegions/available-environments-and-regions/{workloadId}")
             ?? new Dictionary<int, EnvironmentRegionsDto>();
+    }
+
+    public async Task UpdateLandingZoneAsync(WorkloadEnvironmentRegionDto landingZone)
+    {
+        Console.WriteLine($"WorkloadService: Updating landing zone with ID {landingZone.WorkloadEnvironmentRegionId}.");
+        try
+        {
+            var response = await _httpClient.PutAsJsonAsync($"api/WorkloadEnvironmentRegions/{landingZone.WorkloadEnvironmentRegionId}", landingZone);
+            response.EnsureSuccessStatusCode();
+            Console.WriteLine("WorkloadService: Landing zone updated successfully.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"WorkloadService: Error updating landing zone - {ex.Message}");
+            throw;
+        }
+    }
+
+    public async Task DeleteLandingZoneAsync(int landingZoneId)
+    {
+        Console.WriteLine($"WorkloadService: Deleting landing zone with ID {landingZoneId}.");
+        try
+        {
+            var response = await _httpClient.DeleteAsync($"api/WorkloadEnvironmentRegions/{landingZoneId}");
+            response.EnsureSuccessStatusCode();
+            Console.WriteLine("WorkloadService: Landing zone deleted successfully.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"WorkloadService: Error deleting landing zone - {ex.Message}");
+            throw;
+        }
     }
 }

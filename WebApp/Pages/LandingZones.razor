@@ -3,6 +3,7 @@
 @using WebApp.Services
 @inject WorkloadService WorkloadService
 @inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
 
 <h3>Landing Zones</h3>
 
@@ -21,9 +22,6 @@
         </button>
 
         <h5>Workload: @workload.Name</h5>
-        @* <p><strong>Description:</strong> @workload.Description</p>
-        <p><strong>Primary POC:</strong> @workload.PrimaryPOC</p>
-        <p><strong>Secondary POC:</strong> @workload.SecondaryPOC</p> *@
     </div>
 }
 
@@ -51,12 +49,12 @@
                     <button class="btn btn-sm btn-link" @onclick="() => NavigateToResources(landingZone.WorkloadEnvironmentRegionId)">
                         View Resources
                     </button>
-                    @* <button class="btn btn-sm btn-warning" @onclick="() => NavigateToEditLandingZone(landingZone.WorkloadEnvironmentRegionId)">
+                    <button class="btn btn-sm btn-warning" @onclick="() => NavigateToEditLandingZone(landingZone.WorkloadEnvironmentRegionId)">
                         Edit
                     </button>
                     <button class="btn btn-sm btn-danger" @onclick="() => DeleteLandingZone(landingZone.WorkloadEnvironmentRegionId)">
                         Delete
-                    </button> *@
+                    </button>
                 </td>
             </tr>
         }
@@ -87,19 +85,23 @@
         Navigation.NavigateTo($"/resources/{landingZoneId}");
     }
 
-    private void NavigateToWorkloads()
-    {
-        Navigation.NavigateTo("/workloads");
-    }
-
-    @* private void NavigateToEditLandingZone(int landingZoneId)
+    private void NavigateToEditLandingZone(int landingZoneId)
     {
         Navigation.NavigateTo($"/edit-landing-zone/{landingZoneId}");
     }
 
     private async Task DeleteLandingZone(int landingZoneId)
     {
-        await WorkloadService.DeleteLandingZoneAsync(landingZoneId);
-        landingZones = await WorkloadService.GetLandingZonesForWorkloadAsync(WorkloadId); // Refresh list
-    } *@
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", new object[] { "Are you sure you want to delete this landing zone?" });
+        if (confirmed)
+        {
+            await WorkloadService.DeleteLandingZoneAsync(landingZoneId);
+            landingZones = await WorkloadService.GetLandingZonesForWorkloadAsync(WorkloadId); // Refresh list
+        }
+    }
+
+    private void NavigateToWorkloads()
+    {
+        Navigation.NavigateTo("/workloads");
+    }
 }

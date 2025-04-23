@@ -90,6 +90,11 @@ public class AppDbContext : DbContext
                   .HasForeignKey(r => r.ResourceTypeId) // Updated from ResourceTypeId to TypeId
                   .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete
                 
+            entity.HasMany(r => r.PropertyValues)
+                .WithOne()
+                .HasForeignKey(rpv => rpv.ResourceId)
+                .OnDelete(DeleteBehavior.Cascade); // Cascade delete PropertyValues when Resource is deleted
+
             // AutoInclude PropertyValues
             entity.Navigation(r => r.PropertyValues).AutoInclude();
         });

@@ -621,7 +621,7 @@ namespace WebApi.Migrations
                     b.HasOne("WebApi.Models.WorkloadEnvironmentRegion", "WorkloadEnvironmentRegion")
                         .WithMany("Resources")
                         .HasForeignKey("WorkloadEnvironmentRegionId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("WebApi.Models.Workload", null)

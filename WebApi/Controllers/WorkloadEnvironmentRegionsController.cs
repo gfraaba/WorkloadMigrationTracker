@@ -265,16 +265,39 @@ public class WorkloadEnvironmentRegionsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteWorkloadEnvironmentRegion(int id)
     {
-        var workloadEnvironmentRegion = await _context.WorkloadEnvironmentRegions.FindAsync(id);
-        if (workloadEnvironmentRegion == null)
+        try
         {
-            return NotFound();
+            Console.WriteLine($"DeleteWorkloadEnvironmentRegion: Attempting to delete LZ with ID {id}.");
+
+            var workloadEnvironmentRegion = await _context.WorkloadEnvironmentRegions
+                .Include(w => w.Resources)
+                .ThenInclude(r => r.PropertyValues) // Include related PropertyValues
+                .FirstOrDefaultAsync(w => w.WorkloadEnvironmentRegionId == id);
+
+            if (workloadEnvironmentRegion == null)
+            {
+                Console.WriteLine($"DeleteWorkloadEnvironmentRegion: LZ with ID {id} not found.");
+                return NotFound();
+            }
+
+            Console.WriteLine($"DeleteWorkloadEnvironmentRegion: Found LZ with ID {id}. Resources count: {workloadEnvironmentRegion.Resources.Count}");
+
+            foreach (var resource in workloadEnvironmentRegion.Resources)
+            {
+                Console.WriteLine($"DeleteWorkloadEnvironmentRegion: Resource ID {resource.ResourceId} has {resource.PropertyValues.Count} property values.");
+            }
+
+            _context.WorkloadEnvironmentRegions.Remove(workloadEnvironmentRegion);
+            await _context.SaveChangesAsync();
+
+            Console.WriteLine($"DeleteWorkloadEnvironmentRegion: Successfully deleted LZ with ID {id}.");
+            return NoContent();
         }
-
-        _context.WorkloadEnvironmentRegions.Remove(workloadEnvironmentRegion);
-        await _context.SaveChangesAsync();
-
-        return NoContent();
+        catch (Exception ex)
+        {
+            Console.WriteLine($"DeleteWorkloadEnvironmentRegion: Error deleting LZ with ID {id} - {ex.Message}");
+            return StatusCode(500, "An error occurred while deleting the landing zone.");
+        }
     }
 
     private bool WorkloadEnvironmentRegionExists(int id)
