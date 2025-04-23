@@ -23,18 +23,33 @@
                     <p class="card-text">
                         <strong>Resources:</strong> @workload.ResourcesCount
                     </p>
-                    <button class="btn btn-link" @onclick="() => ToggleLandingZones(workload.WorkloadId)">
-                        @((expandedWorkloadId == workload.WorkloadId) ? "Hide Details" : "View Details")
-                    </button>
-                    <button class="btn btn-sm btn-success" @onclick="() => NavigateToAddLandingZone(workload.WorkloadId)">
-                        Add Landing Zone
-                    </button>
-                    <button class="btn btn-sm btn-warning" @onclick="() => NavigateToEditWorkload(workload.WorkloadId)">
-                        Edit Workload
-                    </button>
-                    <button class="btn btn-sm btn-danger" @onclick="() => DeleteWorkload(workload.WorkloadId)">
-                        Delete Workload
-                    </button>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <button class="btn btn-link" @onclick="() => ToggleLandingZones(workload.WorkloadId)">
+                            @((expandedWorkloadId == workload.WorkloadId) ? "Hide Details" : "View Details")
+                        </button>
+                        @* <div class="btn-group"> <!-- Couldn't add enough space between buttons! Vertical stacking with d-flex and flex-column seems to be a better option! -->
+                            <button class="btn btn-sm btn-success" @onclick="() => NavigateToAddLandingZone(workload.WorkloadId)">
+                                Add Landing Zone
+                            </button>
+                            <button class="btn btn-sm btn-warning" @onclick="() => NavigateToEditWorkload(workload.WorkloadId)">
+                                Edit Workload
+                            </button>
+                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteWorkload(workload.WorkloadId)">
+                                Delete Workload
+                            </button>
+                        </div> *@
+                        <div class="d-flex flex-column">
+                            <button class="btn btn-sm btn-success mb-2" @onclick="() => NavigateToAddLandingZone(workload.WorkloadId)">
+                                Add Landing Zone
+                            </button>
+                            <button class="btn btn-sm btn-warning mb-2" @onclick="() => NavigateToEditWorkload(workload.WorkloadId)">
+                                Edit Workload
+                            </button>
+                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteWorkload(workload.WorkloadId)">
+                                Delete Workload
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 @if (expandedWorkloadId == workload.WorkloadId)
                 {
