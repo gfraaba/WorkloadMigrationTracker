@@ -134,8 +134,12 @@ public class WorkloadsController : ControllerBase
             return NotFound();
         }
 
-        // Updated: Mapped from DTO
-        workload = MapToModel(workloadDto);
+        // Update the properties of the tracked entity - MapToModel(workloadDto) would create a new instance, losing the tracking
+        workload.Name = workloadDto.Name;
+        workload.Description = workloadDto.Description;
+        workload.AzureNamePrefix = workloadDto.AzureNamePrefix;
+        workload.PrimaryPOC = workloadDto.PrimaryPOC;
+        workload.SecondaryPOC = workloadDto.SecondaryPOC;
 
         try
         {
