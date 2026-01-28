@@ -1,5 +1,5 @@
 # Use build arguments, if needed, for flexibility
-FROM mcr.microsoft.com/dotnet/sdk:9.0
+FROM mcr.microsoft.com/dotnet/sdk:10.0
 
 # Install essential tools
 RUN apt-get update && \
