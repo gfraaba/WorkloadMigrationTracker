@@ -1,6 +1,7 @@
 ﻿@page "/"
 
 @inject WorkloadService WorkloadService
+@inject IJSRuntime JSRuntime
 
 <h3>Welcome to the Workload Management Dashboard</h3>
 
@@ -38,6 +39,24 @@ else
         Console.WriteLine("Home.razor: OnInitializedAsync started.");
         try
         {
+            // Prefer TEST_API_BASE_URL when present (dev container tests). Fall back to WorkloadService.
+            string? testBase = null;
+            try { testBase = await JSRuntime.InvokeAsync<string>("getTestApiBaseUrl"); } catch { }
+            if (!string.IsNullOrEmpty(testBase))
+            {
+                try
+                {
+                    var client = new System.Net.Http.HttpClient { BaseAddress = new Uri(testBase) };
+                    workloads = await client.GetFromJsonAsync<List<WorkloadDto>>("api/workloads") ?? new List<WorkloadDto>();
+                    Console.WriteLine("Home.razor: Workloads fetched via TEST_API_BASE_URL.");
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Home.razor: TEST_API_BASE_URL fetch failed - {ex.Message}");
+                }
+            }
+
             workloads = await WorkloadService.GetWorkloadsAsync();
             Console.WriteLine("Home.razor: Workloads fetched successfully.");
         }

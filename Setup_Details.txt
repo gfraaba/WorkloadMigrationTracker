@@ -77,8 +77,11 @@ dotnet run --project /workspace/WebApp/WebApp.csproj
 dotnet clean
 dotnet build
 dotnet run
-http://localhost:8080/swagger
-http://localhost:8080/api/ResourceTypes
+# When running in the repo devcontainer the API is exposed on the host at http://localhost:5005
+# (devcontainer maps host 5005 -> container 5000). When running manually via `docker run` above,
+# replace <host-port> with the host port you mapped (for example 5005):
+# http://localhost:5005/swagger
+# http://localhost:5005/api/ResourceTypes
 
 # --------------------------------------------------------------
 

@@ -11,8 +11,16 @@ services:
       DB_NAME: "WorkloadMigration"
       DB_USER: "sa"
       DB_PASSWORD: ${DB_PASSWORD}
+      # Development-only: allowed origins for CORS (semicolon-separated)
+      ALLOWED_ORIGINS: "http://localhost:5049;http://127.0.0.1:5049"
+      # Tests and scripts can use TEST_API_BASE_URL to discover the API host mapping.
+      # Allow overriding from the environment; default keeps prior container-friendly value.
+      TEST_API_BASE_URL: ${TEST_API_BASE_URL:-http://host.docker.internal:5005}
     volumes:
       - ..:/workspace
+    ports:
+      - "5005:5000"
+      - "5049:5049"
     stdin_open: true
     tty: true
     command: sleep infinity

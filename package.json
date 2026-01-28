@@ -1,0 +1,15 @@
+{
+  "name": "workspace",
+  "version": "1.0.0",
+  "description": "Workload Migration Tracker is a web application designed to streamline and manage workload migrations. This project leverages Azure App Service for containers, providing a scalable and reliable platform for hosting the application.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "playwright": "^1.46.1"
+  }
+}
