@@ -1,5 +1,5 @@
 # Use build arguments, if needed, for flexibility
-FROM mcr.microsoft.com/dotnet/sdk:9.0
+FROM mcr.microsoft.com/dotnet/sdk:10.0
 
 # Install essential tools
 RUN apt-get update && \
@@ -9,10 +9,7 @@ RUN apt-get update && \
 COPY . /workspace
 # Navigate to the WebApi directory and add required packages
 RUN cd /workspace/WebApi && \
-    dotnet add package Swashbuckle.AspNetCore && \
-    dotnet add package Microsoft.EntityFrameworkCore && \
-    dotnet add package Microsoft.EntityFrameworkCore.SqlServer && \
-    dotnet tool install --global dotnet-ef && \
+    dotnet tool install --global dotnet-ef || true && \
     echo 'export PATH="$PATH:/root/.dotnet/tools"' >> ~/.bashrc
 
 ENV PATH="$PATH:/root/.dotnet/tools"
@@ -21,8 +18,7 @@ ENV PATH="$PATH:/root/.dotnet/tools"
 #     /workspace/.scripts/wait-for-db.sh
 
 RUN cd /workspace/WebApi && \
-    dotnet tool restore && \
-    dotnet add package Microsoft.EntityFrameworkCore.Design
+    dotnet tool restore || true
     # if [ ! -d "Migrations" ] || [ -z "$(ls -A Migrations)" ]; then \
     #     ~/.dotnet/tools/dotnet-ef migrations add InitialCreate; \
     # fi && \

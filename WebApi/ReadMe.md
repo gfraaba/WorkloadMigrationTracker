@@ -14,7 +14,9 @@ Now run the container, making sure it can communicate with your existing databas
 
 docker run -d \
   --name webapi \
-  -p 8080:8080 \
+  # Map a host port to the container port; the repository's devcontainer maps host 5005 -> container 5000.
+  # Replace <host-port> with the port you want on the host (e.g. 5005) and update tests/docs accordingly.
+  -p <host-port>:8080 \
   -e DB_PASSWORD=<your-db-password> \
   -e DB_SERVER=<your-db-container-name-or-ip-or-dockerCompose_serviceName> \
   --network <your-db-container-network> \
@@ -78,20 +80,20 @@ docker network inspect $DockerDBContainerNetwork
 
 docker network inspect $DockerDBContainerNetwork --format '{{ range $i, $c := .Containers }}{{ printf "%s: %s\n" $c.Name (index $c "Name") }}{{ end }}'
 
-docker run -d --name webapi -p 8080:8080 -e DB_SERVER=$DB_SERVER -e DB_NAME=$DB_NAME -e DB_USER=$DB_USER -e DB_PASSWORD=$DB_PASSWORD --network $DockerDBContainerNetwork --network-alias api webapi:latest
+docker run -d --name webapi -p <host-port>:8080 -e DB_SERVER=$DB_SERVER -e DB_NAME=$DB_NAME -e DB_USER=$DB_USER -e DB_PASSWORD=$DB_PASSWORD --network $DockerDBContainerNetwork --network-alias api webapi:latest
 
 docker logs webapi
 docker exec -it webapi bash
-  #apt-get update && apt-get install -y curl procps net-tools iputils-ping && netstat -tuln && ping -c 4 db && curl http://localhost:8080/api/health && curl curl http://localhost:8080/api/health/database
+  #apt-get update && apt-get install -y curl procps net-tools iputils-ping && netstat -tuln && ping -c 4 db && curl http://localhost:<host-port>/api/health && curl http://localhost:<host-port>/api/health/database
   #apt-get install -y sqlcmd && sqlcmd -S db -U sa -P 'YourStrong@Passw0rd' -Q 'SELECT @@VERSION'
 
 Step 3: Verify the Connection
-Your WebApi should now be accessible at http://localhost:8080/api
+Your WebApi should now be accessible at the host port you mapped (for example `http://localhost:5005/api` when using the devcontainer mapping).
 
-To confirm it's running and properly connected to the database:
+To confirm it's running and properly connected to the database, use the mapped host port. Example (devcontainer mapping):
 
-curl http://localhost:8080/api/health
-curl http://localhost:8080/api/health/database
+curl http://localhost:5005/api/health
+curl http://localhost:5005/api/health/database
 
 (Assuming your API has a health endpoint; otherwise, try another endpoint that connects to the database)
 

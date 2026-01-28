@@ -1,3 +1,33 @@
+## Ignore build outputs
+**/bin/
+**/obj/
+**/publish/
+**/out/
+
+# Ignore IDE and system files
+.vs/
+.vscode/
+.DS_Store
+
+# Node
+node_modules/
+
+# Logs and temporary files (keep test artifacts in _docs/tests)
+# *.log
+
+# Ignore NuGet packages
+*.nupkg
+packages/
+
+# DotNet user-specific
+*.user
+*.suo
+
+# WebApp generated runtime framework (if produced by build)
+WebApp/wwwroot/_framework/
+
+# Tooling
+.turbo/
 # Ignore environment variable files
 .env
 
@@ -24,5 +54,32 @@ obj/
 # Ignore Blazor WebAssembly build artifacts
 **/wwwroot/**
 
+# Ignore compiled binaries and debug symbols
+*.dll
+*.pdb
+*.exe
+*.so
+*.dylib
+
+# Ignore package folders that may contain built artifacts
+**/bin/**
+**/obj/**
+
 # Ignore Entity Framework Core migration files
 **/Migrations/*.cs
+
+# Ignore local test artifacts and captured framework blobs
+_tests/tests/*
+
+# Ignore WebApi build output
+WebApi/bin/
+WebApi/obj/
+
+# Ignore Tests build outputs
+Tests/**/bin/
+Tests/**/obj/
+
+# # Ignore tooling and temporary scripts outputs
+# tools/
+# scripts/
+# _scripts/
