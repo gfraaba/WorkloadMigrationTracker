@@ -25,7 +25,8 @@ services:
       context: ..
       dockerfile: Database/db.Dockerfile
       args:
-        PLATFORM: ${DOCKER_PLATFORM} # The 'platform' directive in docker-compose.yml alone is insufficient for the base image: mcr.microsoft.com/mssql/server:2022-CU18-ubuntu-22.04.
+        PLATFORM: ${DOCKER_PLATFORM} # Keep build arg for consistency.
+    # Reverted to 2022 image to support native ARM64 local development (matches prior behavior).
     platform: ${DOCKER_PLATFORM}
     hostname: ${DB_SERVER} # ← This is your server name, otherwise docker container ID will be used!
     environment:

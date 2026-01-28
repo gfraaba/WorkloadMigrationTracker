@@ -1,5 +1,5 @@
 ARG PLATFORM
-FROM --platform=${PLATFORM} mcr.microsoft.com/mssql/server:2025-latest
+FROM --platform=${PLATFORM} mcr.microsoft.com/mssql/server:2022-CU18-ubuntu-22.04
 
 # Configure for ARM64 performance
 ENV MSSQL_AGENT_ENABLED=false \
